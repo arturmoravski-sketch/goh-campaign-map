@@ -132,6 +132,15 @@ function calcBudget(strength) {
   return { 1: 3500, 2: 5000, 3: 7000, 4: 9000 }[Number(strength)] || 3500;
 }
 
+const unitCategories = ["Пехота", "Поддержка", "ПТО", "Броня", "Артиллерия", "Снабжение", "Другое"];
+
+const initialUnitRows = [
+  { id: "unit-g-1", side: "germany", category: "Пехота", name: "Пехотное отделение", cost: 0, count: 1 },
+  { id: "unit-g-2", side: "germany", category: "ПТО", name: "Pak / ПТО", cost: 0, count: 1 },
+  { id: "unit-s-1", side: "ussr", category: "Пехота", name: "Стрелковое отделение", cost: 0, count: 1 },
+  { id: "unit-s-2", side: "ussr", category: "Броня", name: "Танк / САУ", cost: 0, count: 1 },
+];
+
 function getNeighbors(provinceId, allLinks = links) {
   const result = new Set();
   allLinks.forEach(([a, b]) => {
@@ -217,6 +226,8 @@ export default function GOHCampaignMap() {
   const [turn, setTurn] = useState(1);
   const [battleLog, setBattleLog] = useState([]);
   const [battleForm, setBattleForm] = useState({ province: "minsk", attacker: "G2", defender: "S2", winner: "germany", losses: "средние", note: "" });
+  const [unitCalculator, setUnitCalculator] = useState({ side: "germany", strength: 3 });
+  const [unitRows, setUnitRows] = useState(initialUnitRows);
   const [message, setMessage] = useState("");
 
   const byId = useMemo(() => Object.fromEntries(provinces.map((p) => [p.id, p])), [provinces]);
@@ -224,6 +235,13 @@ export default function GOHCampaignMap() {
   const provinceArmies = armies.filter((a) => a.province === selectedProvince?.id);
   const connectedIds = useMemo(() => getNeighbors(selectedProvinceId), [selectedProvinceId]);
   const victoryPoints = useMemo(() => calculateVictoryPoints(provinces), [provinces]);
+  const calculatorRows = useMemo(() => unitRows.filter((row) => row.side === unitCalculator.side), [unitRows, unitCalculator.side]);
+  const calculatorBudget = calcBudget(unitCalculator.strength);
+  const calculatorTotal = useMemo(
+    () => calculatorRows.reduce((sum, row) => sum + (Number(row.cost) || 0) * (Number(row.count) || 0), 0),
+    [calculatorRows],
+  );
+  const calculatorRemaining = calculatorBudget - calculatorTotal;
 
   function updateProvince(id, patch) {
     setProvinces((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p)));
@@ -233,10 +251,30 @@ export default function GOHCampaignMap() {
     setArmies((prev) => prev.map((a) => (a.id === id ? { ...a, ...patch } : a)));
   }
 
+  function updateUnitRow(id, patch) {
+    setUnitRows((prev) => prev.map((row) => (row.id === id ? { ...row, ...patch } : row)));
+  }
+
+  function addUnitRow() {
+    setUnitRows((prev) => [
+      ...prev,
+      { id: `unit-${Date.now()}`, side: unitCalculator.side, category: "Пехота", name: "", cost: 0, count: 1 },
+    ]);
+  }
+
+  function removeUnitRow(id) {
+    setUnitRows((prev) => prev.filter((row) => row.id !== id));
+  }
+
+  function clearUnitRowsForSide() {
+    setUnitRows((prev) => prev.filter((row) => row.side !== unitCalculator.side));
+  }
+
   function resetCampaign() {
     setProvinces(campaignStartProvinces);
     setArmies(initialArmies);
     setBattleLog([]);
+    setUnitRows(initialUnitRows);
     setTurn(1);
     setSelectedProvinceId("minsk");
     setBattleForm({ province: "minsk", attacker: "G2", defender: "S2", winner: "germany", losses: "средние", note: "" });
@@ -245,7 +283,7 @@ export default function GOHCampaignMap() {
 
   function saveCampaign() {
     try {
-      const data = { provinces, armies, battleLog, turn };
+      const data = { provinces, armies, battleLog, turn, unitRows };
       window.localStorage.setItem("goh_campaign_save_v02", JSON.stringify(data));
       setMessage("Кампания сохранена в браузере.");
     } catch (error) {
@@ -264,6 +302,7 @@ export default function GOHCampaignMap() {
       setProvinces(Array.isArray(data.provinces) ? applyMapCoordinates(data.provinces) : campaignStartProvinces);
       setArmies(Array.isArray(data.armies) ? data.armies : initialArmies);
       setBattleLog(Array.isArray(data.battleLog) ? data.battleLog : []);
+      setUnitRows(Array.isArray(data.unitRows) ? data.unitRows : initialUnitRows);
       setTurn(Number(data.turn) || 1);
       setMessage("Кампания загружена.");
     } catch (error) {
@@ -459,6 +498,106 @@ export default function GOHCampaignMap() {
                   <input className="col-span-2 rounded-xl border px-3 py-2 text-sm" placeholder="Примечание" value={battleForm.note} onChange={(e) => setBattleForm({ ...battleForm, note: e.target.value })} />
                 </div>
                 <AppButton onClick={addBattle} className="w-full"><Icon>＋</Icon>Записать бой</AppButton>
+              </PanelBody>
+            </Panel>
+
+            <Panel>
+              <PanelBody className="space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="font-bold">Калькулятор отряда</h3>
+                  <span className={`rounded-full px-2 py-1 text-xs font-bold ${calculatorRemaining < 0 ? "bg-red-100 text-red-800" : "bg-emerald-100 text-emerald-800"}`}>
+                    {calculatorRemaining >= 0 ? `Осталось ${calculatorRemaining}` : `Перебор ${Math.abs(calculatorRemaining)}`}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <select
+                    className="rounded-xl border px-2 py-2 text-sm"
+                    value={unitCalculator.side}
+                    onChange={(e) => setUnitCalculator((prev) => ({ ...prev, side: e.target.value }))}
+                  >
+                    <option value="germany">Германия</option>
+                    <option value="ussr">СССР</option>
+                  </select>
+                  <select
+                    className="rounded-xl border px-2 py-2 text-sm"
+                    value={unitCalculator.strength}
+                    onChange={(e) => setUnitCalculator((prev) => ({ ...prev, strength: Number(e.target.value) }))}
+                  >
+                    {[1, 2, 3, 4].map((n) => <option key={n} value={n}>Сила {n} · {calcBudget(n)}</option>)}
+                  </select>
+                </div>
+                <div className="grid grid-cols-3 gap-2 text-sm">
+                  <div className="rounded-2xl bg-stone-100 p-3">
+                    <div className="text-xs text-stone-500">Бюджет</div>
+                    <div className="text-lg font-black">{calculatorBudget}</div>
+                  </div>
+                  <div className="rounded-2xl bg-stone-100 p-3">
+                    <div className="text-xs text-stone-500">Набрано</div>
+                    <div className="text-lg font-black">{calculatorTotal}</div>
+                  </div>
+                  <div className={`rounded-2xl p-3 ${calculatorRemaining < 0 ? "bg-red-100 text-red-900" : "bg-emerald-100 text-emerald-900"}`}>
+                    <div className="text-xs opacity-75">Баланс</div>
+                    <div className="text-lg font-black">{calculatorRemaining}</div>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  {calculatorRows.length === 0 && <p className="rounded-2xl border bg-stone-50 p-3 text-sm text-stone-500">Пока нет юнитов.</p>}
+                  {calculatorRows.map((row) => (
+                    <div key={row.id} className="rounded-2xl border bg-white p-3">
+                      <div className="grid grid-cols-[1fr_auto] gap-2">
+                        <input
+                          className="rounded-xl border px-2 py-2 text-sm"
+                          placeholder="Название юнита"
+                          value={row.name}
+                          onChange={(e) => updateUnitRow(row.id, { name: e.target.value })}
+                        />
+                        <button
+                          type="button"
+                          className="h-10 w-10 rounded-xl border text-sm font-black hover:bg-stone-100"
+                          onClick={() => removeUnitRow(row.id)}
+                          aria-label="Удалить юнит"
+                        >
+                          ×
+                        </button>
+                      </div>
+                      <div className="mt-2 grid grid-cols-4 gap-2">
+                        <select
+                          className="col-span-2 rounded-xl border px-2 py-2 text-sm"
+                          value={row.category}
+                          onChange={(e) => updateUnitRow(row.id, { category: e.target.value })}
+                        >
+                          {unitCategories.map((category) => <option key={category}>{category}</option>)}
+                        </select>
+                        <input
+                          className="rounded-xl border px-2 py-2 text-sm"
+                          type="number"
+                          min="0"
+                          step="50"
+                          placeholder="Цена"
+                          value={row.cost}
+                          onChange={(e) => updateUnitRow(row.id, { cost: Number(e.target.value) })}
+                          aria-label="Цена"
+                        />
+                        <input
+                          className="rounded-xl border px-2 py-2 text-sm"
+                          type="number"
+                          min="0"
+                          placeholder="шт."
+                          value={row.count}
+                          onChange={(e) => updateUnitRow(row.id, { count: Number(e.target.value) })}
+                          aria-label="Количество"
+                        />
+                      </div>
+                      <div className="mt-2 text-right text-xs font-bold text-stone-600">
+                        {(Number(row.cost) || 0) * (Number(row.count) || 0)} очков
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <AppButton onClick={addUnitRow} variant="outline">Добавить юнит</AppButton>
+                  <AppButton onClick={clearUnitRowsForSide} variant="outline">Очистить сторону</AppButton>
+                </div>
               </PanelBody>
             </Panel>
 
