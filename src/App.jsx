@@ -87,36 +87,36 @@ const ownerConfig = {
 const mapImageUrl = "/maps/eastern-front-1941.jpg";
 
 const mapCoordinates = {
-  east_prussia: { x: 23, y: 48 },
-  baltics: { x: 34, y: 34 },
-  pskov: { x: 47, y: 33 },
-  luga: { x: 54, y: 28 },
-  leningrad: { x: 58, y: 24 },
-  karelia: { x: 61, y: 11 },
-  brest: { x: 28, y: 55 },
-  bialystok: { x: 31, y: 52 },
-  minsk: { x: 43, y: 50 },
-  vitebsk: { x: 50, y: 45 },
-  smolensk: { x: 60, y: 48 },
-  rzhev: { x: 66, y: 39 },
-  kalinin: { x: 76, y: 38 },
-  moscow: { x: 84, y: 43 },
-  mogilev: { x: 47, y: 55 },
-  gomel: { x: 49, y: 62 },
-  bryansk: { x: 66, y: 58 },
-  orel: { x: 74, y: 58 },
-  lviv: { x: 31, y: 68 },
-  ternopil: { x: 38, y: 69 },
-  zhytomyr: { x: 46, y: 66 },
-  kyiv: { x: 53, y: 70 },
-  cherkasy: { x: 57, y: 74 },
-  poltava: { x: 70, y: 72 },
-  kharkiv: { x: 82, y: 69 },
-  dnipro: { x: 75, y: 80 },
-  zaporizhzhia: { x: 77, y: 84 },
-  odessa: { x: 52, y: 87 },
-  crimea: { x: 66, y: 91 },
-  rostov: { x: 92, y: 83 },
+  east_prussia: { x: 24, y: 42 },
+  baltics: { x: 36, y: 30 },
+  pskov: { x: 48, y: 38 },
+  luga: { x: 57, y: 26 },
+  leningrad: { x: 59, y: 20 },
+  karelia: { x: 64, y: 10 },
+  brest: { x: 29, y: 51 },
+  bialystok: { x: 31, y: 44 },
+  minsk: { x: 44, y: 45 },
+  vitebsk: { x: 56, y: 39 },
+  smolensk: { x: 68, y: 42 },
+  rzhev: { x: 70, y: 31 },
+  kalinin: { x: 80, y: 30 },
+  moscow: { x: 86, y: 36 },
+  mogilev: { x: 52, y: 48 },
+  gomel: { x: 58, y: 53 },
+  bryansk: { x: 76, y: 51 },
+  orel: { x: 82, y: 49 },
+  lviv: { x: 34, y: 65 },
+  ternopil: { x: 40, y: 67 },
+  zhytomyr: { x: 49, y: 61 },
+  kyiv: { x: 60, y: 61 },
+  cherkasy: { x: 59, y: 67 },
+  poltava: { x: 73, y: 65 },
+  kharkiv: { x: 82, y: 63 },
+  dnipro: { x: 80, y: 73 },
+  zaporizhzhia: { x: 81, y: 77 },
+  odessa: { x: 61, y: 84 },
+  crimea: { x: 74, y: 89 },
+  rostov: { x: 91, y: 77 },
 };
 
 function applyMapCoordinates(provinceList) {
@@ -337,7 +337,7 @@ export default function GOHCampaignMap() {
         <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,820px)_390px] xl:items-start">
           <Panel className="overflow-hidden">
             <PanelBody className="p-3 md:p-5">
-              <div className="relative mx-auto aspect-[1240/1749] w-full max-w-[720px] overflow-hidden rounded-2xl border border-stone-400 bg-stone-200 shadow-inner">
+              <div className="relative mx-auto aspect-[1240/1645] w-full max-w-[720px] overflow-hidden rounded-2xl border border-stone-400 bg-stone-200 shadow-inner">
                 <img src={mapImageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
                 <div className="absolute inset-0 bg-stone-50/10" />
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(0,0,0,.16)_1px,transparent_0)] bg-[length:22px_22px] opacity-15" />
