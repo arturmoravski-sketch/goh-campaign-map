@@ -84,6 +84,50 @@ const ownerConfig = {
   neutral: { label: "Нейтрально", dot: "bg-slate-400", text: "text-slate-700", fill: "bg-slate-100", border: "border-slate-300", marker: "bg-slate-500 text-white" },
 };
 
+const mapImageUrl = "/maps/eastern-front-1941.jpg";
+
+const mapCoordinates = {
+  east_prussia: { x: 23, y: 48 },
+  baltics: { x: 34, y: 34 },
+  pskov: { x: 47, y: 33 },
+  luga: { x: 54, y: 28 },
+  leningrad: { x: 58, y: 24 },
+  karelia: { x: 61, y: 11 },
+  brest: { x: 28, y: 55 },
+  bialystok: { x: 31, y: 52 },
+  minsk: { x: 43, y: 50 },
+  vitebsk: { x: 50, y: 45 },
+  smolensk: { x: 60, y: 48 },
+  rzhev: { x: 66, y: 39 },
+  kalinin: { x: 76, y: 38 },
+  moscow: { x: 84, y: 43 },
+  mogilev: { x: 47, y: 55 },
+  gomel: { x: 49, y: 62 },
+  bryansk: { x: 66, y: 58 },
+  orel: { x: 74, y: 58 },
+  lviv: { x: 31, y: 68 },
+  ternopil: { x: 38, y: 69 },
+  zhytomyr: { x: 46, y: 66 },
+  kyiv: { x: 53, y: 70 },
+  cherkasy: { x: 57, y: 74 },
+  poltava: { x: 70, y: 72 },
+  kharkiv: { x: 82, y: 69 },
+  dnipro: { x: 75, y: 80 },
+  zaporizhzhia: { x: 77, y: 84 },
+  odessa: { x: 52, y: 87 },
+  crimea: { x: 66, y: 91 },
+  rostov: { x: 92, y: 83 },
+};
+
+function applyMapCoordinates(provinceList) {
+  return provinceList.map((province) => ({
+    ...province,
+    ...(mapCoordinates[province.id] || {}),
+  }));
+}
+
+const campaignStartProvinces = applyMapCoordinates(initialProvinces);
+
 function calcBudget(strength) {
   return { 1: 3500, 2: 5000, 3: 7000, 4: 9000 }[Number(strength)] || 3500;
 }
@@ -167,7 +211,7 @@ function AppButton({ children, onClick, variant = "solid", className = "", type 
 }
 
 export default function GOHCampaignMap() {
-  const [provinces, setProvinces] = useState(initialProvinces);
+  const [provinces, setProvinces] = useState(campaignStartProvinces);
   const [armies, setArmies] = useState(initialArmies);
   const [selectedProvinceId, setSelectedProvinceId] = useState("minsk");
   const [turn, setTurn] = useState(1);
@@ -190,7 +234,7 @@ export default function GOHCampaignMap() {
   }
 
   function resetCampaign() {
-    setProvinces(initialProvinces);
+    setProvinces(campaignStartProvinces);
     setArmies(initialArmies);
     setBattleLog([]);
     setTurn(1);
@@ -217,7 +261,7 @@ export default function GOHCampaignMap() {
         return;
       }
       const data = JSON.parse(raw);
-      setProvinces(Array.isArray(data.provinces) ? data.provinces : initialProvinces);
+      setProvinces(Array.isArray(data.provinces) ? applyMapCoordinates(data.provinces) : campaignStartProvinces);
       setArmies(Array.isArray(data.armies) ? data.armies : initialArmies);
       setBattleLog(Array.isArray(data.battleLog) ? data.battleLog : []);
       setTurn(Number(data.turn) || 1);
@@ -290,18 +334,20 @@ export default function GOHCampaignMap() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_390px]">
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,820px)_390px] xl:items-start">
           <Panel className="overflow-hidden">
             <PanelBody className="p-3 md:p-5">
-              <div className="relative h-[620px] overflow-hidden rounded-3xl border border-stone-300 bg-gradient-to-br from-amber-50 via-stone-200 to-emerald-50">
-                <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, rgba(0,0,0,.18) 1px, transparent 0)", backgroundSize: "22px 22px" }} />
-                <svg className="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+              <div className="relative mx-auto aspect-[1240/1749] w-full max-w-[720px] overflow-hidden rounded-2xl border border-stone-400 bg-stone-200 shadow-inner">
+                <img src={mapImageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                <div className="absolute inset-0 bg-stone-50/10" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(0,0,0,.16)_1px,transparent_0)] bg-[length:22px_22px] opacity-15" />
+                <svg className="pointer-events-none absolute inset-0 z-10 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
                   {links.map(([a, b]) => {
                     const pa = byId[a];
                     const pb = byId[b];
                     if (!pa || !pb) return null;
                     const active = a === selectedProvinceId || b === selectedProvinceId;
-                    return <line key={`${a}-${b}`} x1={pa.x} y1={pa.y} x2={pb.x} y2={pb.y} stroke={active ? "rgba(0,0,0,.7)" : "rgba(80,70,60,.28)"} strokeWidth={active ? 0.45 : 0.25} strokeDasharray={active ? "" : "1 1"} />;
+                    return <line key={`${a}-${b}`} x1={pa.x} y1={pa.y} x2={pb.x} y2={pb.y} stroke={active ? "rgba(20,20,20,.8)" : "rgba(45,40,35,.42)"} strokeWidth={active ? 0.45 : 0.28} strokeDasharray={active ? "" : "1 1"} />;
                   })}
                 </svg>
 
@@ -316,23 +362,23 @@ export default function GOHCampaignMap() {
                         setSelectedProvinceId(p.id);
                         setBattleForm((bf) => ({ ...bf, province: p.id }));
                       }}
-                      className={`absolute min-w-[92px] -translate-x-1/2 -translate-y-1/2 rounded-2xl border-2 px-2 py-1 text-left shadow-sm transition hover:scale-105 ${cfg.fill} ${cfg.border} ${isSelected ? "ring-4 ring-amber-400" : ""}`}
+                      className={`absolute min-w-[72px] max-w-[118px] -translate-x-1/2 -translate-y-1/2 rounded-lg border-2 bg-opacity-90 px-1.5 py-1 text-left shadow-md backdrop-blur-[1px] transition hover:z-30 hover:scale-110 ${cfg.fill} ${cfg.border} ${isSelected ? "z-30 ring-2 ring-amber-400" : "z-20"}`}
                       style={{ left: `${p.x}%`, top: `${p.y}%` }}
                     >
                       <div className="flex items-center gap-1">
                         <span className={`h-2.5 w-2.5 rounded-full ${cfg.dot}`} />
-                        <span className="text-[11px] font-bold leading-tight">{p.name}</span>
+                        <span className="text-[10px] font-bold leading-tight">{p.name}</span>
                       </div>
                       <div className="mt-1 flex flex-wrap gap-1">
                         {armiesHere.map((a) => (
-                          <span key={a.id} className={`rounded-full px-1.5 py-0.5 text-[10px] font-black ${a.side === "germany" ? ownerConfig.germany.marker : ownerConfig.ussr.marker}`}>{a.id}:{a.strength}</span>
+                          <span key={a.id} className={`rounded-full px-1.5 py-0.5 text-[9px] font-black ${a.side === "germany" ? ownerConfig.germany.marker : ownerConfig.ussr.marker}`}>{a.id}:{a.strength}</span>
                         ))}
                       </div>
                     </button>
                   );
                 })}
 
-                <div className="absolute bottom-3 left-3 flex flex-wrap gap-2 rounded-2xl border bg-white/85 p-2 text-xs backdrop-blur">
+                <div className="absolute bottom-3 left-3 z-40 flex max-w-[calc(100%-1.5rem)] flex-wrap gap-2 rounded-xl border bg-white/90 p-2 text-xs shadow-sm backdrop-blur">
                   <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-full bg-red-700" /> СССР</span>
                   <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-full bg-zinc-800" /> Германия</span>
                   <span className="flex items-center gap-1"><Icon>⚑</Icon> число = сила группы</span>
