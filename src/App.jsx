@@ -11,68 +11,105 @@ import {
 const initialProvinces = [
   { id: "east_prussia", name: "Восточная Пруссия", sector: "Север", type: "база", owner: "germany", x: 7, y: 18, points: 0, bonus: "База Германии" },
   { id: "baltics", name: "Прибалтика", sector: "Север", type: "лес/города", owner: "ussr", x: 22, y: 13, points: 1, bonus: "Северное направление" },
+  { id: "riga", name: "Рига", sector: "Север", type: "порт/город", owner: "ussr", x: 30, y: 25, points: 1, bonus: "+300 порт" },
+  { id: "daugavpils", name: "Двинск", sector: "Север", type: "переход/река", owner: "ussr", x: 43, y: 33, points: 0, bonus: "Западная Двина" },
   { id: "pskov", name: "Псков", sector: "Север", type: "город", owner: "ussr", x: 37, y: 12, points: 1, bonus: "Узел дорог" },
+  { id: "velikie_luki", name: "Великие Луки", sector: "Север", type: "переход/лес", owner: "ussr", x: 58, y: 34, points: 0, bonus: "Связка север-центр" },
   { id: "luga", name: "Луга", sector: "Север", type: "лес/укрепления", owner: "ussr", x: 51, y: 10, points: 1, bonus: "+500 обороне" },
+  { id: "novgorod", name: "Новгород", sector: "Север", type: "город/река", owner: "ussr", x: 64, y: 27, points: 1, bonus: "Подступ к Ленинграду" },
   { id: "leningrad", name: "Ленинград", sector: "Север", type: "крупный город", owner: "ussr", x: 66, y: 8, points: 4, bonus: "Ключевая точка" },
+  { id: "tikhvin", name: "Тихвин", sector: "Север", type: "переход/лес", owner: "ussr", x: 72, y: 22, points: 0, bonus: "Северная развилка" },
   { id: "karelia", name: "Карелия", sector: "Север", type: "лес/озёра", owner: "ussr", x: 78, y: 4, points: 1, bonus: "Трудная местность" },
 
   { id: "brest", name: "Брест", sector: "Центр", type: "крепость", owner: "germany", x: 9, y: 42, points: 1, bonus: "+500 обороне" },
   { id: "bialystok", name: "Белосток", sector: "Центр", type: "поле/узел", owner: "germany", x: 18, y: 32, points: 1, bonus: "Дорожный узел" },
+  { id: "vilnius", name: "Вильнюс", sector: "Центр", type: "город/узел", owner: "ussr", x: 37, y: 38, points: 1, bonus: "Балтийский узел" },
   { id: "minsk", name: "Минск", sector: "Центр", type: "крупный город", owner: "ussr", x: 31, y: 35, points: 1, bonus: "+300 снабжение" },
+  { id: "orsha", name: "Орша", sector: "Центр", type: "город/узел", owner: "ussr", x: 61, y: 43, points: 1, bonus: "Дорога на Смоленск" },
   { id: "vitebsk", name: "Витебск", sector: "Центр", type: "город/лес", owner: "ussr", x: 44, y: 29, points: 1, bonus: "Переход к Смоленску" },
   { id: "smolensk", name: "Смоленск", sector: "Центр", type: "город/узел", owner: "ussr", x: 58, y: 32, points: 2, bonus: "Быстрое движение" },
   { id: "rzhev", name: "Ржев", sector: "Центр", type: "укрепрайон", owner: "ussr", x: 69, y: 25, points: 1, bonus: "+500 обороне" },
   { id: "kalinin", name: "Калинин", sector: "Центр", type: "город", owner: "ussr", x: 78, y: 24, points: 1, bonus: "Подступ к Москве" },
+  { id: "vyazma", name: "Вязьма", sector: "Центр", type: "город/узел", owner: "ussr", x: 75, y: 41, points: 1, bonus: "Московское направление" },
   { id: "moscow", name: "Москва", sector: "Центр", type: "столица", owner: "ussr", x: 82, y: 38, points: 5, bonus: "Главная цель" },
+  { id: "kaluga", name: "Калуга", sector: "Центр", type: "переход/город", owner: "ussr", x: 83, y: 46, points: 0, bonus: "Южный обход Москвы" },
+  { id: "tula", name: "Тула", sector: "Центр", type: "город/промышленность", owner: "ussr", x: 87, y: 48, points: 1, bonus: "+300 промышленность" },
   { id: "mogilev", name: "Могилёв", sector: "Центр", type: "город", owner: "ussr", x: 43, y: 43, points: 1, bonus: "Оборонительная линия" },
   { id: "gomel", name: "Гомель", sector: "Центр", type: "лес/река", owner: "ussr", x: 49, y: 55, points: 1, bonus: "Связь центр-юг" },
   { id: "bryansk", name: "Брянск", sector: "Центр", type: "лес/укрепрайон", owner: "ussr", x: 64, y: 52, points: 1, bonus: "Лесная оборона" },
   { id: "orel", name: "Орёл", sector: "Центр", type: "поле/город", owner: "ussr", x: 76, y: 56, points: 1, bonus: "Южный подступ" },
+  { id: "kursk", name: "Курск", sector: "Центр", type: "город/узел", owner: "ussr", x: 82, y: 57, points: 1, bonus: "Связь центр-юг" },
 
   { id: "lviv", name: "Львов", sector: "Юг", type: "город", owner: "germany", x: 8, y: 66, points: 1, bonus: "База Германии" },
   { id: "ternopil", name: "Тернополь", sector: "Юг", type: "поле/город", owner: "ussr", x: 19, y: 69, points: 1, bonus: "Западная Украина" },
   { id: "zhytomyr", name: "Житомир", sector: "Юг", type: "лес/поле", owner: "ussr", x: 31, y: 64, points: 1, bonus: "Путь на Киев" },
+  { id: "vinnytsia", name: "Винница", sector: "Юг", type: "переход/город", owner: "ussr", x: 49, y: 68, points: 0, bonus: "Правобережный узел" },
   { id: "kyiv", name: "Киев", sector: "Юг", type: "крупный город/река", owner: "ussr", x: 43, y: 66, points: 3, bonus: "+500 обороне" },
+  { id: "chernihiv", name: "Чернигов", sector: "Юг", type: "переход/река", owner: "ussr", x: 64, y: 57, points: 0, bonus: "Десна" },
+  { id: "uman", name: "Умань", sector: "Юг", type: "переход/поле", owner: "ussr", x: 54, y: 71, points: 0, bonus: "Южная развилка" },
   { id: "cherkasy", name: "Черкассы", sector: "Юг", type: "река/переправа", owner: "ussr", x: 53, y: 74, points: 1, bonus: "Переправа" },
   { id: "poltava", name: "Полтава", sector: "Юг", type: "поле", owner: "ussr", x: 66, y: 72, points: 1, bonus: "Открытый бой" },
   { id: "kharkiv", name: "Харьков", sector: "Юг", type: "большой город", owner: "ussr", x: 78, y: 70, points: 2, bonus: "+300 промышленность" },
+  { id: "kryvyi_rih", name: "Кривой Рог", sector: "Юг", type: "промышленный узел", owner: "ussr", x: 70, y: 75, points: 1, bonus: "+300 промышленность" },
   { id: "dnipro", name: "Днепропетровск", sector: "Юг", type: "промышленный город/река", owner: "ussr", x: 63, y: 84, points: 1, bonus: "+300 промышленность" },
   { id: "zaporizhzhia", name: "Запорожье", sector: "Юг", type: "река/индустрия", owner: "ussr", x: 73, y: 88, points: 1, bonus: "Днепр" },
+  { id: "mykolaiv", name: "Николаев", sector: "Юг", type: "порт/город", owner: "ussr", x: 64, y: 80, points: 1, bonus: "+300 порт" },
   { id: "odessa", name: "Одесса", sector: "Юг", type: "порт/город", owner: "ussr", x: 30, y: 91, points: 1, bonus: "+300 порт" },
+  { id: "melitopol", name: "Мелитополь", sector: "Юг", type: "переход/степь", owner: "ussr", x: 81, y: 83, points: 0, bonus: "Путь в Крым" },
   { id: "crimea", name: "Крым", sector: "Юг", type: "полуостров/укрепрайон", owner: "ussr", x: 58, y: 96, points: 2, bonus: "+500 обороне" },
+  { id: "sevastopol", name: "Севастополь", sector: "Юг", type: "порт/крепость", owner: "ussr", x: 74, y: 94, points: 1, bonus: "+500 обороне" },
+  { id: "stalino", name: "Сталино", sector: "Юг", type: "промышленный город", owner: "ussr", x: 87, y: 69, points: 1, bonus: "+300 промышленность" },
   { id: "rostov", name: "Ростов", sector: "Юг", type: "город/ворота на Кавказ", owner: "ussr", x: 88, y: 88, points: 2, bonus: "Стратегическая точка" },
 ];
 
 const links = [
-  ["east_prussia", "baltics"], ["east_prussia", "bialystok"],
-  ["baltics", "pskov"], ["baltics", "vitebsk"], ["baltics", "bialystok"],
-  ["pskov", "luga"], ["pskov", "vitebsk"],
-  ["luga", "leningrad"], ["luga", "kalinin"],
+  ["east_prussia", "baltics"], ["east_prussia", "bialystok"], ["east_prussia", "vilnius"],
+  ["baltics", "riga"], ["baltics", "daugavpils"], ["baltics", "vilnius"],
+  ["riga", "pskov"], ["riga", "daugavpils"],
+  ["daugavpils", "pskov"], ["daugavpils", "vitebsk"], ["daugavpils", "vilnius"],
+  ["pskov", "luga"], ["pskov", "velikie_luki"], ["pskov", "novgorod"],
+  ["velikie_luki", "vitebsk"], ["velikie_luki", "rzhev"], ["velikie_luki", "smolensk"],
+  ["luga", "leningrad"], ["luga", "novgorod"],
+  ["novgorod", "leningrad"], ["novgorod", "tikhvin"], ["novgorod", "kalinin"],
+  ["tikhvin", "leningrad"], ["tikhvin", "kalinin"],
   ["leningrad", "karelia"],
 
   ["brest", "bialystok"], ["brest", "minsk"], ["brest", "lviv"],
-  ["bialystok", "minsk"],
-  ["minsk", "vitebsk"], ["minsk", "mogilev"], ["minsk", "zhytomyr"],
-  ["vitebsk", "smolensk"], ["vitebsk", "mogilev"],
-  ["smolensk", "mogilev"], ["smolensk", "rzhev"], ["smolensk", "bryansk"], ["smolensk", "moscow"],
-  ["rzhev", "kalinin"], ["rzhev", "moscow"],
+  ["bialystok", "vilnius"], ["bialystok", "minsk"],
+  ["vilnius", "minsk"],
+  ["minsk", "orsha"], ["minsk", "mogilev"], ["minsk", "zhytomyr"],
+  ["vitebsk", "orsha"], ["vitebsk", "mogilev"],
+  ["orsha", "smolensk"], ["orsha", "mogilev"],
+  ["smolensk", "mogilev"], ["smolensk", "rzhev"], ["smolensk", "vyazma"], ["smolensk", "bryansk"],
+  ["rzhev", "kalinin"], ["rzhev", "vyazma"], ["rzhev", "moscow"],
   ["kalinin", "moscow"],
-  ["moscow", "bryansk"], ["moscow", "orel"],
+  ["vyazma", "moscow"], ["vyazma", "kaluga"], ["vyazma", "bryansk"],
+  ["moscow", "kaluga"], ["moscow", "tula"],
+  ["kaluga", "tula"], ["kaluga", "bryansk"],
+  ["tula", "orel"], ["tula", "kursk"],
   ["mogilev", "gomel"],
-  ["gomel", "bryansk"], ["gomel", "kyiv"], ["gomel", "cherkasy"],
-  ["bryansk", "orel"],
-  ["orel", "poltava"], ["orel", "kharkiv"],
+  ["gomel", "bryansk"], ["gomel", "chernihiv"],
+  ["bryansk", "orel"], ["bryansk", "kursk"],
+  ["orel", "kursk"],
+  ["kursk", "kharkiv"], ["kursk", "poltava"],
 
   ["lviv", "ternopil"], ["lviv", "zhytomyr"],
-  ["ternopil", "zhytomyr"], ["ternopil", "odessa"],
-  ["zhytomyr", "kyiv"],
-  ["kyiv", "cherkasy"], ["kyiv", "poltava"],
-  ["cherkasy", "poltava"], ["cherkasy", "dnipro"],
-  ["poltava", "kharkiv"], ["poltava", "dnipro"],
-  ["kharkiv", "dnipro"], ["kharkiv", "rostov"],
-  ["dnipro", "zaporizhzhia"], ["dnipro", "crimea"],
-  ["zaporizhzhia", "crimea"], ["zaporizhzhia", "rostov"], ["zaporizhzhia", "odessa"],
-  ["odessa", "crimea"],
+  ["ternopil", "zhytomyr"], ["ternopil", "vinnytsia"],
+  ["zhytomyr", "kyiv"], ["zhytomyr", "vinnytsia"],
+  ["vinnytsia", "kyiv"], ["vinnytsia", "uman"],
+  ["kyiv", "chernihiv"], ["kyiv", "cherkasy"], ["kyiv", "poltava"],
+  ["chernihiv", "cherkasy"], ["chernihiv", "poltava"],
+  ["uman", "cherkasy"], ["uman", "mykolaiv"], ["uman", "odessa"],
+  ["cherkasy", "poltava"], ["cherkasy", "kryvyi_rih"], ["cherkasy", "dnipro"],
+  ["poltava", "kharkiv"], ["poltava", "dnipro"], ["poltava", "kryvyi_rih"],
+  ["kharkiv", "dnipro"], ["kharkiv", "stalino"],
+  ["kryvyi_rih", "dnipro"], ["kryvyi_rih", "mykolaiv"], ["kryvyi_rih", "zaporizhzhia"],
+  ["dnipro", "zaporizhzhia"], ["dnipro", "melitopol"],
+  ["zaporizhzhia", "melitopol"], ["zaporizhzhia", "stalino"],
+  ["mykolaiv", "odessa"], ["mykolaiv", "melitopol"],
+  ["melitopol", "crimea"], ["melitopol", "rostov"],
+  ["crimea", "sevastopol"],
+  ["stalino", "rostov"],
 ];
 
 const initialArmies = [
@@ -97,33 +134,52 @@ const mapImageUrl = "/maps/eastern-front-1941.jpg";
 const mapCoordinates = {
   east_prussia: { x: 24, y: 42 },
   baltics: { x: 36, y: 30 },
+  riga: { x: 30, y: 25 },
+  daugavpils: { x: 43, y: 33 },
   pskov: { x: 48, y: 38 },
+  velikie_luki: { x: 58, y: 34 },
   luga: { x: 57, y: 26 },
+  novgorod: { x: 64, y: 27 },
   leningrad: { x: 59, y: 20 },
+  tikhvin: { x: 72, y: 22 },
   karelia: { x: 64, y: 10 },
   brest: { x: 29, y: 51 },
   bialystok: { x: 31, y: 44 },
+  vilnius: { x: 37, y: 38 },
   minsk: { x: 44, y: 45 },
+  orsha: { x: 61, y: 43 },
   vitebsk: { x: 56, y: 39 },
   smolensk: { x: 68, y: 42 },
   rzhev: { x: 70, y: 31 },
   kalinin: { x: 80, y: 30 },
+  vyazma: { x: 75, y: 41 },
   moscow: { x: 86, y: 36 },
+  kaluga: { x: 83, y: 46 },
+  tula: { x: 87, y: 48 },
   mogilev: { x: 52, y: 48 },
   gomel: { x: 58, y: 53 },
-  bryansk: { x: 76, y: 51 },
-  orel: { x: 82, y: 49 },
+  bryansk: { x: 75, y: 52 },
+  orel: { x: 82, y: 54 },
+  kursk: { x: 78, y: 60 },
   lviv: { x: 34, y: 65 },
   ternopil: { x: 40, y: 67 },
   zhytomyr: { x: 49, y: 61 },
+  vinnytsia: { x: 49, y: 68 },
   kyiv: { x: 60, y: 61 },
+  chernihiv: { x: 64, y: 57 },
+  uman: { x: 54, y: 71 },
   cherkasy: { x: 59, y: 67 },
   poltava: { x: 73, y: 65 },
-  kharkiv: { x: 82, y: 63 },
+  kharkiv: { x: 84, y: 65 },
+  kryvyi_rih: { x: 70, y: 75 },
   dnipro: { x: 80, y: 73 },
   zaporizhzhia: { x: 81, y: 77 },
+  mykolaiv: { x: 64, y: 80 },
   odessa: { x: 61, y: 84 },
+  melitopol: { x: 81, y: 83 },
   crimea: { x: 74, y: 89 },
+  sevastopol: { x: 74, y: 94 },
+  stalino: { x: 87, y: 69 },
   rostov: { x: 91, y: 77 },
 };
 
@@ -135,6 +191,18 @@ function applyMapCoordinates(provinceList) {
 }
 
 const campaignStartProvinces = applyMapCoordinates(initialProvinces);
+
+function mergeCampaignProvinces(provinceList) {
+  const savedById = new Map(provinceList.map((province) => [province.id, province]));
+  return campaignStartProvinces.map((baseProvince) => {
+    const savedProvince = savedById.get(baseProvince.id);
+    return {
+      ...baseProvince,
+      ...(savedProvince || {}),
+      ...(mapCoordinates[baseProvince.id] || {}),
+    };
+  });
+}
 
 function calcBudget(strength) {
   return { 1: 3500, 2: 5000, 3: 7000, 4: 9000 }[Number(strength)] || 3500;
@@ -182,14 +250,20 @@ function runSelfTests() {
   const armyIds = new Set(initialArmies.map((a) => a.id));
   const errors = [];
 
-  if (initialProvinces.length !== 30) errors.push(`Ожидалось 30 провинций, получено ${initialProvinces.length}`);
+  if (initialProvinces.length !== 49) errors.push(`Ожидалось 49 провинций, получено ${initialProvinces.length}`);
   if (calcBudget(1) !== 3500) errors.push("calcBudget(1) должен быть 3500");
   if (calcBudget(4) !== 9000) errors.push("calcBudget(4) должен быть 9000");
   if (!guideUnitCatalog.some((unit) => unit.id === "g-tank-pz3e" && unit.cost === 340)) errors.push("В справочнике должна быть цена Pz.Kpfw III Ausf.E");
   if (!guideUnitCatalog.some((unit) => unit.id === "s-tank-t26-1933" && unit.cost === 245)) errors.push("В справочнике должна быть цена Т-26 обр. 1933 г.");
   if (!guideUnitCatalog.some((unit) => unit.id === "g-d-pak36" && unit.resource === "ОД")) errors.push("Доктринные вызовы должны считаться в ОД");
   if (!getNeighbors("minsk").includes("brest")) errors.push("Минск должен быть связан с Брестом");
-  if (!getNeighbors("minsk").includes("vitebsk")) errors.push("Минск должен быть связан с Витебском");
+  if (!getNeighbors("minsk").includes("orsha")) errors.push("Минск должен быть связан с Оршей");
+  if (!getNeighbors("orsha").includes("smolensk")) errors.push("Орша должна быть связана со Смоленском");
+  if (!getNeighbors("melitopol").includes("crimea")) errors.push("Мелитополь должен быть связан с Крымом");
+
+  initialProvinces.forEach((province) => {
+    if (!mapCoordinates[province.id]) errors.push(`Для провинции нет координат карты: ${province.id}`);
+  });
 
   links.forEach(([a, b]) => {
     if (!provinceIds.has(a)) errors.push(`Связь содержит неизвестную провинцию: ${a}`);
@@ -359,7 +433,7 @@ export default function GOHCampaignMap() {
         return;
       }
       const data = JSON.parse(raw);
-      setProvinces(Array.isArray(data.provinces) ? applyMapCoordinates(data.provinces) : campaignStartProvinces);
+      setProvinces(Array.isArray(data.provinces) ? mergeCampaignProvinces(data.provinces) : campaignStartProvinces);
       setArmies(Array.isArray(data.armies) ? data.armies : initialArmies);
       setBattleLog(Array.isArray(data.battleLog) ? data.battleLog : []);
       setUnitRows(Array.isArray(data.unitRows) ? data.unitRows.map((row) => ({ doctrine: commonDoctrine, resource: "ЛС", command: 0, ...row })) : initialUnitRows);
@@ -453,7 +527,11 @@ export default function GOHCampaignMap() {
                 {provinces.map((p) => {
                   const isSelected = p.id === selectedProvinceId;
                   const armiesHere = armies.filter((a) => a.province === p.id);
+                  const isCompact = !isSelected && armiesHere.length === 0 && p.points === 0 && p.type.includes("переход");
                   const cfg = ownerConfig[p.owner] || ownerConfig.neutral;
+                  const markerSizeClass = isCompact ? "min-w-[46px] max-w-[84px] rounded-md px-1 py-0.5" : "min-w-[72px] max-w-[118px] rounded-lg px-1.5 py-1";
+                  const dotSizeClass = isCompact ? "h-2 w-2" : "h-2.5 w-2.5";
+                  const labelSizeClass = isCompact ? "text-[9px]" : "text-[10px]";
                   return (
                     <button
                       key={p.id}
@@ -461,12 +539,12 @@ export default function GOHCampaignMap() {
                         setSelectedProvinceId(p.id);
                         setBattleForm((bf) => ({ ...bf, province: p.id }));
                       }}
-                      className={`absolute min-w-[72px] max-w-[118px] -translate-x-1/2 -translate-y-1/2 rounded-lg border-2 bg-opacity-90 px-1.5 py-1 text-left shadow-md backdrop-blur-[1px] transition hover:z-30 hover:scale-110 ${cfg.fill} ${cfg.border} ${isSelected ? "z-30 ring-2 ring-amber-400" : "z-20"}`}
+                      className={`absolute -translate-x-1/2 -translate-y-1/2 border-2 bg-opacity-90 text-left shadow-md backdrop-blur-[1px] transition hover:z-30 hover:scale-110 ${markerSizeClass} ${cfg.fill} ${cfg.border} ${isSelected ? "z-30 ring-2 ring-amber-400" : "z-20"}`}
                       style={{ left: `${p.x}%`, top: `${p.y}%` }}
                     >
                       <div className="flex items-center gap-1">
-                        <span className={`h-2.5 w-2.5 rounded-full ${cfg.dot}`} />
-                        <span className="text-[10px] font-bold leading-tight">{p.name}</span>
+                        <span className={`${dotSizeClass} rounded-full ${cfg.dot}`} />
+                        <span className={`${labelSizeClass} font-bold leading-tight`}>{p.name}</span>
                       </div>
                       <div className="mt-1 flex flex-wrap gap-1">
                         {armiesHere.map((a) => (
