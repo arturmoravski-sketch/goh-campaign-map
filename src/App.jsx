@@ -1,4 +1,12 @@
 import React, { useMemo, useState } from "react";
+import {
+  commonDoctrine,
+  getCatalogUnits,
+  getDoctrineOptions,
+  guideSource,
+  guideUnitCatalog,
+  unitCategories,
+} from "./unitCatalog";
 
 const initialProvinces = [
   { id: "east_prussia", name: "Восточная Пруссия", sector: "Север", type: "база", owner: "germany", x: 7, y: 18, points: 0, bonus: "База Германии" },
@@ -132,13 +140,25 @@ function calcBudget(strength) {
   return { 1: 3500, 2: 5000, 3: 7000, 4: 9000 }[Number(strength)] || 3500;
 }
 
-const unitCategories = ["Пехота", "Поддержка", "ПТО", "Броня", "Артиллерия", "Снабжение", "Другое"];
+function makeUnitRow(unit, id = `unit-${Date.now()}`) {
+  return {
+    id,
+    side: unit.side,
+    doctrine: unit.doctrine,
+    category: unit.category,
+    name: unit.name,
+    cost: unit.cost,
+    resource: unit.resource,
+    command: unit.command,
+    count: 1,
+  };
+}
 
 const initialUnitRows = [
-  { id: "unit-g-1", side: "germany", category: "Пехота", name: "Пехотное отделение", cost: 0, count: 1 },
-  { id: "unit-g-2", side: "germany", category: "ПТО", name: "Pak / ПТО", cost: 0, count: 1 },
-  { id: "unit-s-1", side: "ussr", category: "Пехота", name: "Стрелковое отделение", cost: 0, count: 1 },
-  { id: "unit-s-2", side: "ussr", category: "Броня", name: "Танк / САУ", cost: 0, count: 1 },
+  makeUnitRow(guideUnitCatalog.find((unit) => unit.id === "g-inf-rifleman"), "unit-g-1"),
+  makeUnitRow(guideUnitCatalog.find((unit) => unit.id === "g-tank-pz3e"), "unit-g-2"),
+  makeUnitRow(guideUnitCatalog.find((unit) => unit.id === "s-inf-rifleman"), "unit-s-1"),
+  makeUnitRow(guideUnitCatalog.find((unit) => unit.id === "s-tank-t26-1933"), "unit-s-2"),
 ];
 
 function getNeighbors(provinceId, allLinks = links) {
@@ -165,6 +185,9 @@ function runSelfTests() {
   if (initialProvinces.length !== 30) errors.push(`Ожидалось 30 провинций, получено ${initialProvinces.length}`);
   if (calcBudget(1) !== 3500) errors.push("calcBudget(1) должен быть 3500");
   if (calcBudget(4) !== 9000) errors.push("calcBudget(4) должен быть 9000");
+  if (!guideUnitCatalog.some((unit) => unit.id === "g-tank-pz3e" && unit.cost === 340)) errors.push("В справочнике должна быть цена Pz.Kpfw III Ausf.E");
+  if (!guideUnitCatalog.some((unit) => unit.id === "s-tank-t26-1933" && unit.cost === 245)) errors.push("В справочнике должна быть цена Т-26 обр. 1933 г.");
+  if (!guideUnitCatalog.some((unit) => unit.id === "g-d-pak36" && unit.resource === "ОД")) errors.push("Доктринные вызовы должны считаться в ОД");
   if (!getNeighbors("minsk").includes("brest")) errors.push("Минск должен быть связан с Брестом");
   if (!getNeighbors("minsk").includes("vitebsk")) errors.push("Минск должен быть связан с Витебском");
 
@@ -226,7 +249,7 @@ export default function GOHCampaignMap() {
   const [turn, setTurn] = useState(1);
   const [battleLog, setBattleLog] = useState([]);
   const [battleForm, setBattleForm] = useState({ province: "minsk", attacker: "G2", defender: "S2", winner: "germany", losses: "средние", note: "" });
-  const [unitCalculator, setUnitCalculator] = useState({ side: "germany", strength: 3 });
+  const [unitCalculator, setUnitCalculator] = useState({ side: "germany", strength: 3, doctrine: "Универсальная", unitId: "g-u-riflemen" });
   const [unitRows, setUnitRows] = useState(initialUnitRows);
   const [message, setMessage] = useState("");
 
@@ -235,10 +258,30 @@ export default function GOHCampaignMap() {
   const provinceArmies = armies.filter((a) => a.province === selectedProvince?.id);
   const connectedIds = useMemo(() => getNeighbors(selectedProvinceId), [selectedProvinceId]);
   const victoryPoints = useMemo(() => calculateVictoryPoints(provinces), [provinces]);
+  const doctrineOptions = useMemo(() => getDoctrineOptions(unitCalculator.side), [unitCalculator.side]);
+  const catalogUnits = useMemo(
+    () => getCatalogUnits(unitCalculator.side, unitCalculator.doctrine),
+    [unitCalculator.side, unitCalculator.doctrine],
+  );
+  const selectedCatalogUnit = catalogUnits.find((unit) => unit.id === unitCalculator.unitId) || catalogUnits[0];
   const calculatorRows = useMemo(() => unitRows.filter((row) => row.side === unitCalculator.side), [unitRows, unitCalculator.side]);
   const calculatorBudget = calcBudget(unitCalculator.strength);
   const calculatorTotal = useMemo(
-    () => calculatorRows.reduce((sum, row) => sum + (Number(row.cost) || 0) * (Number(row.count) || 0), 0),
+    () => calculatorRows.reduce((sum, row) => {
+      if ((row.resource || "ЛС") !== "ЛС") return sum;
+      return sum + (Number(row.cost) || 0) * (Number(row.count) || 0);
+    }, 0),
+    [calculatorRows],
+  );
+  const calculatorDoctrineTotal = useMemo(
+    () => calculatorRows.reduce((sum, row) => {
+      if ((row.resource || "ЛС") !== "ОД") return sum;
+      return sum + (Number(row.cost) || 0) * (Number(row.count) || 0);
+    }, 0),
+    [calculatorRows],
+  );
+  const calculatorCommandTotal = useMemo(
+    () => calculatorRows.reduce((sum, row) => sum + (Number(row.command) || 0) * (Number(row.count) || 0), 0),
     [calculatorRows],
   );
   const calculatorRemaining = calculatorBudget - calculatorTotal;
@@ -255,10 +298,26 @@ export default function GOHCampaignMap() {
     setUnitRows((prev) => prev.map((row) => (row.id === id ? { ...row, ...patch } : row)));
   }
 
+  function selectUnitSide(side) {
+    const nextDoctrine = getDoctrineOptions(side).includes(unitCalculator.doctrine) ? unitCalculator.doctrine : commonDoctrine;
+    const nextUnits = getCatalogUnits(side, nextDoctrine);
+    setUnitCalculator((prev) => ({ ...prev, side, doctrine: nextDoctrine, unitId: nextUnits[0]?.id || "" }));
+  }
+
+  function selectDoctrine(doctrine) {
+    const nextUnits = getCatalogUnits(unitCalculator.side, doctrine);
+    setUnitCalculator((prev) => ({ ...prev, doctrine, unitId: nextUnits[0]?.id || "" }));
+  }
+
+  function addCatalogUnit() {
+    if (!selectedCatalogUnit) return;
+    setUnitRows((prev) => [...prev, makeUnitRow(selectedCatalogUnit, `unit-${selectedCatalogUnit.id}-${Date.now()}`)]);
+  }
+
   function addUnitRow() {
     setUnitRows((prev) => [
       ...prev,
-      { id: `unit-${Date.now()}`, side: unitCalculator.side, category: "Пехота", name: "", cost: 0, count: 1 },
+      { id: `unit-${Date.now()}`, side: unitCalculator.side, doctrine: unitCalculator.doctrine, category: "Пехота", name: "", cost: 0, resource: "ЛС", command: 0, count: 1 },
     ]);
   }
 
@@ -275,6 +334,7 @@ export default function GOHCampaignMap() {
     setArmies(initialArmies);
     setBattleLog([]);
     setUnitRows(initialUnitRows);
+    setUnitCalculator({ side: "germany", strength: 3, doctrine: "Универсальная", unitId: "g-u-riflemen" });
     setTurn(1);
     setSelectedProvinceId("minsk");
     setBattleForm({ province: "minsk", attacker: "G2", defender: "S2", winner: "germany", losses: "средние", note: "" });
@@ -302,7 +362,7 @@ export default function GOHCampaignMap() {
       setProvinces(Array.isArray(data.provinces) ? applyMapCoordinates(data.provinces) : campaignStartProvinces);
       setArmies(Array.isArray(data.armies) ? data.armies : initialArmies);
       setBattleLog(Array.isArray(data.battleLog) ? data.battleLog : []);
-      setUnitRows(Array.isArray(data.unitRows) ? data.unitRows : initialUnitRows);
+      setUnitRows(Array.isArray(data.unitRows) ? data.unitRows.map((row) => ({ doctrine: commonDoctrine, resource: "ЛС", command: 0, ...row })) : initialUnitRows);
       setTurn(Number(data.turn) || 1);
       setMessage("Кампания загружена.");
     } catch (error) {
@@ -513,7 +573,7 @@ export default function GOHCampaignMap() {
                   <select
                     className="rounded-xl border px-2 py-2 text-sm"
                     value={unitCalculator.side}
-                    onChange={(e) => setUnitCalculator((prev) => ({ ...prev, side: e.target.value }))}
+                    onChange={(e) => selectUnitSide(e.target.value)}
                   >
                     <option value="germany">Германия</option>
                     <option value="ussr">СССР</option>
@@ -525,20 +585,45 @@ export default function GOHCampaignMap() {
                   >
                     {[1, 2, 3, 4].map((n) => <option key={n} value={n}>Сила {n} · {calcBudget(n)}</option>)}
                   </select>
+                  <select
+                    className="col-span-2 rounded-xl border px-2 py-2 text-sm"
+                    value={unitCalculator.doctrine}
+                    onChange={(e) => selectDoctrine(e.target.value)}
+                  >
+                    {doctrineOptions.map((doctrine) => <option key={doctrine}>{doctrine}</option>)}
+                  </select>
+                  <select
+                    className="col-span-2 rounded-xl border px-2 py-2 text-sm"
+                    value={selectedCatalogUnit?.id || ""}
+                    onChange={(e) => setUnitCalculator((prev) => ({ ...prev, unitId: e.target.value }))}
+                  >
+                    {catalogUnits.map((unit) => (
+                      <option key={unit.id} value={unit.id}>
+                        {unit.name} · {unit.cost} {unit.resource} / {unit.command} КО
+                      </option>
+                    ))}
+                  </select>
                 </div>
-                <div className="grid grid-cols-3 gap-2 text-sm">
+                <div className="grid grid-cols-2 gap-2 text-sm">
                   <div className="rounded-2xl bg-stone-100 p-3">
-                    <div className="text-xs text-stone-500">Бюджет</div>
+                    <div className="text-xs text-stone-500">Бюджет ЛС</div>
                     <div className="text-lg font-black">{calculatorBudget}</div>
                   </div>
                   <div className="rounded-2xl bg-stone-100 p-3">
-                    <div className="text-xs text-stone-500">Набрано</div>
+                    <div className="text-xs text-stone-500">Набрано ЛС</div>
                     <div className="text-lg font-black">{calculatorTotal}</div>
                   </div>
                   <div className={`rounded-2xl p-3 ${calculatorRemaining < 0 ? "bg-red-100 text-red-900" : "bg-emerald-100 text-emerald-900"}`}>
                     <div className="text-xs opacity-75">Баланс</div>
                     <div className="text-lg font-black">{calculatorRemaining}</div>
                   </div>
+                  <div className="rounded-2xl bg-stone-100 p-3">
+                    <div className="text-xs text-stone-500">ОД / КО</div>
+                    <div className="text-lg font-black">{calculatorDoctrineTotal} / {calculatorCommandTotal}</div>
+                  </div>
+                </div>
+                <div className="rounded-2xl border bg-stone-50 p-3 text-xs text-stone-600">
+                  Цены: {guideSource.period}, Steam-гайд “{guideSource.title}”.
                 </div>
                 <div className="space-y-2">
                   {calculatorRows.length === 0 && <p className="rounded-2xl border bg-stone-50 p-3 text-sm text-stone-500">Пока нет юнитов.</p>}
@@ -562,21 +647,39 @@ export default function GOHCampaignMap() {
                       </div>
                       <div className="mt-2 grid grid-cols-4 gap-2">
                         <select
-                          className="col-span-2 rounded-xl border px-2 py-2 text-sm"
+                          className="col-span-4 rounded-xl border px-2 py-2 text-sm"
                           value={row.category}
                           onChange={(e) => updateUnitRow(row.id, { category: e.target.value })}
                         >
                           {unitCategories.map((category) => <option key={category}>{category}</option>)}
                         </select>
+                        <select
+                          className="rounded-xl border px-2 py-2 text-sm"
+                          value={row.resource || "ЛС"}
+                          onChange={(e) => updateUnitRow(row.id, { resource: e.target.value })}
+                          aria-label="Ресурс"
+                        >
+                          <option>ЛС</option>
+                          <option>ОД</option>
+                        </select>
                         <input
                           className="rounded-xl border px-2 py-2 text-sm"
                           type="number"
                           min="0"
-                          step="50"
-                          placeholder="Цена"
+                          step="1"
+                          placeholder="ЛС"
                           value={row.cost}
                           onChange={(e) => updateUnitRow(row.id, { cost: Number(e.target.value) })}
                           aria-label="Цена"
+                        />
+                        <input
+                          className="rounded-xl border px-2 py-2 text-sm"
+                          type="number"
+                          min="0"
+                          placeholder="КО"
+                          value={row.command ?? 0}
+                          onChange={(e) => updateUnitRow(row.id, { command: Number(e.target.value) })}
+                          aria-label="Командные очки"
                         />
                         <input
                           className="rounded-xl border px-2 py-2 text-sm"
@@ -588,15 +691,22 @@ export default function GOHCampaignMap() {
                           aria-label="Количество"
                         />
                       </div>
-                      <div className="mt-2 text-right text-xs font-bold text-stone-600">
-                        {(Number(row.cost) || 0) * (Number(row.count) || 0)} очков
+                      <div className="mt-2 flex items-center justify-between gap-2 text-xs font-bold text-stone-600">
+                        <span>{row.doctrine || commonDoctrine}</span>
+                        <span>{(Number(row.cost) || 0) * (Number(row.count) || 0)} {row.resource || "ЛС"} · {(Number(row.command) || 0) * (Number(row.count) || 0)} КО</span>
                       </div>
                     </div>
                   ))}
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <AppButton onClick={addUnitRow} variant="outline">Добавить юнит</AppButton>
-                  <AppButton onClick={clearUnitRowsForSide} variant="outline">Очистить сторону</AppButton>
+                  <AppButton onClick={addCatalogUnit}>Добавить из списка</AppButton>
+                  <AppButton onClick={addUnitRow} variant="outline">Своя строка</AppButton>
+                  <AppButton onClick={clearUnitRowsForSide} variant="outline" className="col-span-2">Очистить сторону</AppButton>
+                </div>
+                <div className="text-right">
+                  <a className="text-xs font-semibold text-stone-500 underline-offset-4 hover:underline" href={guideSource.url} target="_blank" rel="noreferrer">
+                    Открыть источник цен
+                  </a>
                 </div>
               </PanelBody>
             </Panel>
