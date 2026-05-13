@@ -135,6 +135,8 @@ const ownerConfig = {
   neutral: { label: "Нейтрально", dot: "bg-slate-400", text: "text-slate-700", fill: "bg-slate-100", border: "border-slate-300", marker: "bg-slate-500 text-white" },
 };
 
+const playerSides = ["germany", "ussr"];
+
 const mapImageUrl = "/maps/eastern-front-1941.jpg";
 
 const mapCoordinates = {
@@ -396,6 +398,7 @@ function AppButton({ children, onClick, variant = "solid", className = "", type 
 export default function GOHCampaignMap() {
   const [provinces, setProvinces] = useState(campaignStartProvinces);
   const [armies, setArmies] = useState(initialArmies);
+  const [playerSide, setPlayerSide] = useState("germany");
   const [selectedProvinceId, setSelectedProvinceId] = useState("minsk");
   const [turn, setTurn] = useState(1);
   const [battleLog, setBattleLog] = useState([]);
@@ -407,6 +410,14 @@ export default function GOHCampaignMap() {
   const byId = useMemo(() => Object.fromEntries(provinces.map((p) => [p.id, p])), [provinces]);
   const selectedProvince = byId[selectedProvinceId] || provinces[0];
   const provinceArmies = armies.filter((a) => a.province === selectedProvince?.id);
+  const ownProvinceIds = useMemo(() => armies.filter((army) => army.side === playerSide).map((army) => army.province), [armies, playerSide]);
+  const reconProvinceIds = useMemo(() => {
+    const ids = new Set(ownProvinceIds);
+    ownProvinceIds.forEach((id) => getNeighbors(id).forEach((neighborId) => ids.add(neighborId)));
+    return ids;
+  }, [ownProvinceIds]);
+  const visibleProvinceArmies = provinceArmies.filter((army) => army.side === playerSide);
+  const selectedEnemyContacts = provinceArmies.filter((army) => army.side !== playerSide && reconProvinceIds.has(selectedProvince?.id));
   const connectedIds = useMemo(() => getNeighbors(selectedProvinceId), [selectedProvinceId]);
   const victoryPoints = useMemo(() => calculateVictoryPoints(provinces), [provinces]);
   const doctrineOptions = useMemo(() => getDoctrineOptions(unitCalculator.side), [unitCalculator.side]);
@@ -448,6 +459,10 @@ export default function GOHCampaignMap() {
     ? Math.min(sovietBaseBudget, crisisRules.ussrBudgetCap)
     : sovietBaseBudget;
   const germanRecommendedBudget = germanBaseBudget;
+  const visibleBattleArmies = useMemo(
+    () => armies.filter((army) => army.side === playerSide || reconProvinceIds.has(army.province)),
+    [armies, playerSide, reconProvinceIds],
+  );
 
   function updateProvince(id, patch) {
     setProvinces((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p)));
@@ -455,6 +470,27 @@ export default function GOHCampaignMap() {
 
   function updateArmy(id, patch) {
     setArmies((prev) => prev.map((a) => (a.id === id ? { ...a, ...patch } : a)));
+  }
+
+  function selectPlayerSide(side) {
+    setPlayerSide(side);
+    selectUnitSide(side);
+    const nextOwnProvinceIds = armies.filter((army) => army.side === side).map((army) => army.province);
+    const nextReconProvinceIds = new Set(nextOwnProvinceIds);
+    nextOwnProvinceIds.forEach((id) => getNeighbors(id).forEach((neighborId) => nextReconProvinceIds.add(neighborId)));
+    const ownArmy = armies.find((army) => army.side === side);
+    const contactArmy = armies.find((army) => army.side !== side && nextReconProvinceIds.has(army.province));
+    setBattleForm((prev) => ({
+      ...prev,
+      attacker: ownArmy?.id || prev.attacker,
+      defender: contactArmy?.id || prev.defender,
+      winner: side,
+    }));
+  }
+
+  function formatArmyOption(army) {
+    if (army.side === playerSide) return `${army.id} · ${army.name}`;
+    return `Контакт · ${byId[army.province]?.name || "неизвестно"}`;
   }
 
   function updateUnitRow(id, patch) {
@@ -611,6 +647,26 @@ export default function GOHCampaignMap() {
           </div>
         </header>
 
+        <Panel>
+          <PanelBody className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h2 className="font-bold">Сторона игрока</h2>
+              <p className="text-sm text-stone-600">Туман войны скрывает точный состав противника. В соседних с вашими армиями провинциях видны только контакты.</p>
+            </div>
+            <div className="grid grid-cols-2 gap-2 md:w-[360px]">
+              {playerSides.map((side) => (
+                <AppButton
+                  key={side}
+                  variant={playerSide === side ? "solid" : "outline"}
+                  onClick={() => selectPlayerSide(side)}
+                >
+                  {ownerConfig[side].label}
+                </AppButton>
+              ))}
+            </div>
+          </PanelBody>
+        </Panel>
+
         {message && <div className="rounded-2xl border border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-900">{message}</div>}
         {!testResult.ok && (
           <div className="rounded-2xl border border-red-300 bg-red-50 px-4 py-2 text-sm text-red-900">
@@ -638,7 +694,10 @@ export default function GOHCampaignMap() {
                 {provinces.map((p) => {
                   const isSelected = p.id === selectedProvinceId;
                   const armiesHere = armies.filter((a) => a.province === p.id);
-                  const isCompact = !isSelected && armiesHere.length === 0 && p.points === 0 && p.type.includes("переход");
+                  const ownArmiesHere = armiesHere.filter((army) => army.side === playerSide);
+                  const enemyContactCount = armiesHere.filter((army) => army.side !== playerSide).length;
+                  const showEnemyContact = enemyContactCount > 0 && reconProvinceIds.has(p.id);
+                  const isCompact = !isSelected && ownArmiesHere.length === 0 && !showEnemyContact && p.points === 0 && p.type.includes("переход");
                   const cfg = ownerConfig[p.owner] || ownerConfig.neutral;
                   const markerSizeClass = isCompact ? "min-w-[46px] max-w-[84px] rounded-md px-1 py-0.5" : "min-w-[72px] max-w-[118px] rounded-lg px-1.5 py-1";
                   const dotSizeClass = isCompact ? "h-2 w-2" : "h-2.5 w-2.5";
@@ -658,9 +717,12 @@ export default function GOHCampaignMap() {
                         <span className={`${labelSizeClass} font-bold leading-tight`}>{p.name}</span>
                       </div>
                       <div className="mt-1 flex flex-wrap gap-1">
-                        {armiesHere.map((a) => (
-                          <span key={a.id} className={`rounded-full px-1.5 py-0.5 text-[9px] font-black ${a.side === "germany" ? ownerConfig.germany.marker : ownerConfig.ussr.marker}`}>{a.id}:{a.strength}</span>
+                        {ownArmiesHere.map((a) => (
+                          <span key={a.id} className={`rounded-full px-1.5 py-0.5 text-[9px] font-black ${ownerConfig[playerSide].marker}`}>{a.id}:{a.strength}</span>
                         ))}
+                        {showEnemyContact && (
+                          <span className="rounded-full bg-amber-200 px-1.5 py-0.5 text-[9px] font-black text-amber-950">контакт</span>
+                        )}
                       </div>
                     </button>
                   );
@@ -669,6 +731,7 @@ export default function GOHCampaignMap() {
                 <div className="absolute bottom-3 left-3 z-40 flex max-w-[calc(100%-1.5rem)] flex-wrap gap-2 rounded-xl border bg-white/90 p-2 text-xs shadow-sm backdrop-blur">
                   <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-full bg-red-700" /> СССР</span>
                   <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-full bg-zinc-800" /> Германия</span>
+                  <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-full bg-amber-300" /> контакт</span>
                   <span className="flex items-center gap-1"><Icon>⚑</Icon> число = сила группы</span>
                 </div>
               </div>
@@ -701,8 +764,14 @@ export default function GOHCampaignMap() {
             <Panel>
               <PanelBody className="space-y-3">
                 <h3 className="flex items-center gap-2 font-bold"><Icon>🛡️</Icon> Армии в провинции</h3>
-                {provinceArmies.length === 0 && <p className="text-sm text-stone-500">В этой провинции нет армий.</p>}
-                {provinceArmies.map((a) => (
+                {visibleProvinceArmies.length === 0 && selectedEnemyContacts.length === 0 && <p className="text-sm text-stone-500">В этой провинции нет видимых армий.</p>}
+                {selectedEnemyContacts.length > 0 && (
+                  <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">
+                    <b>Вражеский контакт</b>
+                    <div className="mt-1 text-xs">Состав и сила скрыты туманом войны. Точный отряд раскрывается только после боя или разведки.</div>
+                  </div>
+                )}
+                {visibleProvinceArmies.map((a) => (
                   <div key={a.id} className="space-y-2 rounded-2xl border bg-white p-3">
                     <div className="flex items-center justify-between">
                       <b className={a.side === "germany" ? "text-zinc-900" : "text-red-800"}>{a.id} — {a.name}</b>
@@ -729,10 +798,10 @@ export default function GOHCampaignMap() {
                     {provinces.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </select>
                   <select className="rounded-xl border px-2 py-2 text-sm" value={battleForm.attacker} onChange={(e) => setBattleForm({ ...battleForm, attacker: e.target.value })}>
-                    {armies.map((a) => <option key={a.id} value={a.id}>{a.id} · {a.name}</option>)}
+                    {visibleBattleArmies.map((a) => <option key={a.id} value={a.id}>{formatArmyOption(a)}</option>)}
                   </select>
                   <select className="rounded-xl border px-2 py-2 text-sm" value={battleForm.defender} onChange={(e) => setBattleForm({ ...battleForm, defender: e.target.value })}>
-                    {armies.map((a) => <option key={a.id} value={a.id}>{a.id} · {a.name}</option>)}
+                    {visibleBattleArmies.map((a) => <option key={a.id} value={a.id}>{formatArmyOption(a)}</option>)}
                   </select>
                   <select className="rounded-xl border px-2 py-2 text-sm" value={battleForm.winner} onChange={(e) => setBattleForm({ ...battleForm, winner: e.target.value })}>
                     <option value="germany">Победила Германия</option>
@@ -820,14 +889,9 @@ export default function GOHCampaignMap() {
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <select
-                    className="rounded-xl border px-2 py-2 text-sm"
-                    value={unitCalculator.side}
-                    onChange={(e) => selectUnitSide(e.target.value)}
-                  >
-                    <option value="germany">Германия</option>
-                    <option value="ussr">СССР</option>
-                  </select>
+                  <div className="rounded-xl border bg-stone-50 px-2 py-2 text-sm font-semibold">
+                    {ownerConfig[playerSide].label}
+                  </div>
                   <select
                     className="rounded-xl border px-2 py-2 text-sm"
                     value={calculatorBudget}
