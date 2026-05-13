@@ -123,6 +123,12 @@ const initialArmies = [
   { id: "SR", name: "Резерв Ставки", side: "ussr", province: "moscow", strength: 1 },
 ];
 
+const strengthLevels = [1, 2, 3, 4, 5];
+const calculatorBudgetOptions = [
+  { value: 2500, label: "Кризис · 2500" },
+  ...strengthLevels.map((strength) => ({ value: calcBudget(strength), label: `Сила ${strength} · ${calcBudget(strength)}` })),
+];
+
 const ownerConfig = {
   germany: { label: "Германия", dot: "bg-zinc-800", text: "text-zinc-950", fill: "bg-zinc-300", border: "border-zinc-700", marker: "bg-zinc-900 text-white" },
   ussr: { label: "СССР", dot: "bg-red-700", text: "text-red-950", fill: "bg-red-200", border: "border-red-700", marker: "bg-red-700 text-white" },
@@ -205,7 +211,77 @@ function mergeCampaignProvinces(provinceList) {
 }
 
 function calcBudget(strength) {
-  return { 1: 3500, 2: 5000, 3: 7000, 4: 9000 }[Number(strength)] || 3500;
+  return { 1: 3500, 2: 5000, 3: 7000, 4: 9000, 5: 11000 }[Number(strength)] || 3500;
+}
+
+function getModPresetForBudget(budget) {
+  if (!budget) return "Без лимита";
+  if (budget <= 2500) return "GOH 2500 ЛС";
+  if (budget <= 3500) return "GOH 3500 ЛС";
+  if (budget <= 5000) return "GOH 5000 ЛС";
+  if (budget <= 7000) return "GOH 7000 ЛС";
+  if (budget <= 9000) return "GOH 9000 ЛС";
+  return "GOH 11000 ЛС";
+}
+
+function getCampaignCrisisRules(turn) {
+  if (turn <= 2) {
+    return {
+      phase: "Шок начала войны",
+      tone: "border-red-300 bg-red-50 text-red-950",
+      ussrBudgetCap: 3500,
+      reservePreset: "GOH 2500 ЛС",
+      germanyInitiative: "Блицкриг: после победы можно занять 1 пустую соседнюю провинцию.",
+      ussrRules: [
+        "СССР: максимум 3500 ЛС на бой, окружённые группы лучше играть на 2500 ЛС.",
+        "КВ запрещены; Т-34 максимум 1 штука и только по договорённости.",
+        "Тяжёлая артиллерия запрещена.",
+        "Быстрое движение на оперативной карте запрещено.",
+        "При поражении окружённая группа теряет +1 дополнительный уровень силы.",
+      ],
+      germanyRules: [
+        "Германия использует обычный бюджет по силе группы.",
+        "Можно атаковать агрессивнее и развивать успех после победы.",
+      ],
+    };
+  }
+
+  if (turn <= 4) {
+    return {
+      phase: "Восстановление управления",
+      tone: "border-amber-300 bg-amber-50 text-amber-950",
+      ussrBudgetCap: 5000,
+      reservePreset: "GOH 3500 ЛС",
+      germanyInitiative: "Инициатива Германии сохраняется, но без бесплатного второго продвижения.",
+      ussrRules: [
+        "СССР: максимум 5000 ЛС на бой.",
+        "Можно взять 1 Т-34; КВ только как редкий сценарный юнит.",
+        "ПТО и миномёты доступны без дополнительных ограничений.",
+        "Штраф на движение снимается.",
+      ],
+      germanyRules: [
+        "Германия всё ещё выбирает темп операции.",
+        "Блицкриг-бонус уже не даёт автоматического второго шага.",
+      ],
+    };
+  }
+
+  return {
+    phase: "Стабилизация фронта",
+    tone: "border-emerald-300 bg-emerald-50 text-emerald-950",
+    ussrBudgetCap: null,
+    reservePreset: null,
+    germanyInitiative: "Обычная кампания: продвижение только по результату боя и правилам карты.",
+    ussrRules: [
+      "СССР использует обычные бюджеты по силе группы.",
+      "Доступны полноценные силы по выбранному году и доктрине.",
+      "Можно вводить резервы и применять оборонительные бонусы провинций.",
+    ],
+    germanyRules: [
+      "Германия играет без стартового блицкриг-бонуса.",
+      "Преимущество теперь нужно поддерживать победами на карте.",
+    ],
+  };
 }
 
 function makeUnitRow(unit, id = `unit-${Date.now()}`) {
@@ -253,6 +329,7 @@ function runSelfTests() {
   if (initialProvinces.length !== 49) errors.push(`Ожидалось 49 провинций, получено ${initialProvinces.length}`);
   if (calcBudget(1) !== 3500) errors.push("calcBudget(1) должен быть 3500");
   if (calcBudget(4) !== 9000) errors.push("calcBudget(4) должен быть 9000");
+  if (calcBudget(5) !== 11000) errors.push("calcBudget(5) должен быть 11000");
   if (!guideUnitCatalog.some((unit) => unit.id === "g-tank-pz3e" && unit.cost === 340)) errors.push("В справочнике должна быть цена Pz.Kpfw III Ausf.E");
   if (!guideUnitCatalog.some((unit) => unit.id === "s-tank-t26-1933" && unit.cost === 245)) errors.push("В справочнике должна быть цена Т-26 обр. 1933 г.");
   if (!guideUnitCatalog.some((unit) => unit.id === "g-d-pak36" && unit.resource === "ОД")) errors.push("Доктринные вызовы должны считаться в ОД");
@@ -273,7 +350,7 @@ function runSelfTests() {
   initialArmies.forEach((army) => {
     if (!provinceIds.has(army.province)) errors.push(`Армия ${army.id} стоит в неизвестной провинции ${army.province}`);
     if (!armyIds.has(army.id)) errors.push(`Неизвестная армия: ${army.id}`);
-    if (![1, 2, 3, 4].includes(army.strength)) errors.push(`У армии ${army.id} неправильная сила: ${army.strength}`);
+    if (!strengthLevels.includes(army.strength)) errors.push(`У армии ${army.id} неправильная сила: ${army.strength}`);
   });
 
   const vp = calculateVictoryPoints(initialProvinces);
@@ -323,7 +400,7 @@ export default function GOHCampaignMap() {
   const [turn, setTurn] = useState(1);
   const [battleLog, setBattleLog] = useState([]);
   const [battleForm, setBattleForm] = useState({ province: "minsk", attacker: "G2", defender: "S2", winner: "germany", losses: "средние", note: "" });
-  const [unitCalculator, setUnitCalculator] = useState({ side: "germany", strength: 3, doctrine: "Универсальная", unitId: "g-u-riflemen" });
+  const [unitCalculator, setUnitCalculator] = useState({ side: "germany", strength: 3, budget: 7000, doctrine: "Универсальная", unitId: "g-u-riflemen" });
   const [unitRows, setUnitRows] = useState(initialUnitRows);
   const [message, setMessage] = useState("");
 
@@ -339,7 +416,7 @@ export default function GOHCampaignMap() {
   );
   const selectedCatalogUnit = catalogUnits.find((unit) => unit.id === unitCalculator.unitId) || catalogUnits[0];
   const calculatorRows = useMemo(() => unitRows.filter((row) => row.side === unitCalculator.side), [unitRows, unitCalculator.side]);
-  const calculatorBudget = calcBudget(unitCalculator.strength);
+  const calculatorBudget = Number(unitCalculator.budget) || calcBudget(unitCalculator.strength);
   const calculatorTotal = useMemo(
     () => calculatorRows.reduce((sum, row) => {
       if ((row.resource || "ЛС") !== "ЛС") return sum;
@@ -359,6 +436,18 @@ export default function GOHCampaignMap() {
     [calculatorRows],
   );
   const calculatorRemaining = calculatorBudget - calculatorTotal;
+  const crisisRules = useMemo(() => getCampaignCrisisRules(turn), [turn]);
+  const battleAttacker = armies.find((army) => army.id === battleForm.attacker);
+  const battleDefender = armies.find((army) => army.id === battleForm.defender);
+  const battleArmies = [battleAttacker, battleDefender].filter(Boolean);
+  const sovietBattleArmy = battleArmies.find((army) => army.side === "ussr");
+  const germanBattleArmy = battleArmies.find((army) => army.side === "germany");
+  const sovietBaseBudget = sovietBattleArmy ? calcBudget(sovietBattleArmy.strength) : null;
+  const germanBaseBudget = germanBattleArmy ? calcBudget(germanBattleArmy.strength) : null;
+  const sovietRecommendedBudget = sovietBaseBudget && crisisRules.ussrBudgetCap
+    ? Math.min(sovietBaseBudget, crisisRules.ussrBudgetCap)
+    : sovietBaseBudget;
+  const germanRecommendedBudget = germanBaseBudget;
 
   function updateProvince(id, patch) {
     setProvinces((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p)));
@@ -408,7 +497,7 @@ export default function GOHCampaignMap() {
     setArmies(initialArmies);
     setBattleLog([]);
     setUnitRows(initialUnitRows);
-    setUnitCalculator({ side: "germany", strength: 3, doctrine: "Универсальная", unitId: "g-u-riflemen" });
+    setUnitCalculator({ side: "germany", strength: 3, budget: 7000, doctrine: "Универсальная", unitId: "g-u-riflemen" });
     setTurn(1);
     setSelectedProvinceId("minsk");
     setBattleForm({ province: "minsk", attacker: "G2", defender: "S2", winner: "germany", losses: "средние", note: "" });
@@ -602,7 +691,7 @@ export default function GOHCampaignMap() {
                         {provinces.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                       </select>
                       <select className="rounded-xl border px-2 py-1 text-sm" value={a.strength} onChange={(e) => updateArmy(a.id, { strength: Number(e.target.value) })}>
-                        {[1, 2, 3, 4].map((n) => <option key={n} value={n}>Сила {n} · {calcBudget(n)} очков</option>)}
+                        {strengthLevels.map((n) => <option key={n} value={n}>Сила {n} · {calcBudget(n)} очков</option>)}
                       </select>
                     </div>
                   </div>
@@ -641,6 +730,51 @@ export default function GOHCampaignMap() {
 
             <Panel>
               <PanelBody className="space-y-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <h3 className="font-bold">Кризис 1941</h3>
+                    <p className="text-sm text-stone-600">Ход {turn} · {crisisRules.phase}</p>
+                  </div>
+                  <span className={`rounded-full border px-2 py-1 text-xs font-bold ${crisisRules.tone}`}>
+                    СССР {crisisRules.ussrBudgetCap ? `до ${crisisRules.ussrBudgetCap}` : "без лимита"}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div className="rounded-2xl bg-red-50 p-3 text-red-950">
+                    <div className="text-xs font-bold uppercase tracking-wide text-red-700">СССР</div>
+                    <div className="mt-1 text-lg font-black">
+                      {sovietRecommendedBudget ? getModPresetForBudget(sovietRecommendedBudget) : "Выберите армию"}
+                    </div>
+                    {sovietBaseBudget && crisisRules.ussrBudgetCap && sovietBaseBudget > crisisRules.ussrBudgetCap && (
+                      <div className="mt-1 text-xs">Срезано с {sovietBaseBudget} ЛС из-за кризиса.</div>
+                    )}
+                  </div>
+                  <div className="rounded-2xl bg-zinc-100 p-3 text-zinc-950">
+                    <div className="text-xs font-bold uppercase tracking-wide text-zinc-600">Германия</div>
+                    <div className="mt-1 text-lg font-black">
+                      {germanRecommendedBudget ? getModPresetForBudget(germanRecommendedBudget) : "Выберите армию"}
+                    </div>
+                    <div className="mt-1 text-xs">Обычный бюджет по силе группы.</div>
+                  </div>
+                </div>
+                <div className="rounded-2xl border bg-stone-50 p-3 text-xs leading-relaxed text-stone-700">
+                  <div className="font-bold text-stone-900">Правила СССР</div>
+                  <ul className="mt-1 space-y-1">
+                    {crisisRules.ussrRules.map((rule) => <li key={rule}>· {rule}</li>)}
+                  </ul>
+                  <div className="mt-3 font-bold text-stone-900">Инициатива Германии</div>
+                  <ul className="mt-1 space-y-1">
+                    {crisisRules.germanyRules.map((rule) => <li key={rule}>· {rule}</li>)}
+                  </ul>
+                </div>
+                <div className="rounded-2xl border border-stone-200 bg-white p-3 text-xs text-stone-600">
+                  {crisisRules.germanyInitiative}
+                </div>
+              </PanelBody>
+            </Panel>
+
+            <Panel>
+              <PanelBody className="space-y-3">
                 <div className="flex items-center justify-between gap-2">
                   <h3 className="font-bold">Калькулятор отряда</h3>
                   <span className={`rounded-full px-2 py-1 text-xs font-bold ${calculatorRemaining < 0 ? "bg-red-100 text-red-800" : "bg-emerald-100 text-emerald-800"}`}>
@@ -658,10 +792,10 @@ export default function GOHCampaignMap() {
                   </select>
                   <select
                     className="rounded-xl border px-2 py-2 text-sm"
-                    value={unitCalculator.strength}
-                    onChange={(e) => setUnitCalculator((prev) => ({ ...prev, strength: Number(e.target.value) }))}
+                    value={calculatorBudget}
+                    onChange={(e) => setUnitCalculator((prev) => ({ ...prev, budget: Number(e.target.value) }))}
                   >
-                    {[1, 2, 3, 4].map((n) => <option key={n} value={n}>Сила {n} · {calcBudget(n)}</option>)}
+                    {calculatorBudgetOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                   </select>
                   <select
                     className="col-span-2 rounded-xl border px-2 py-2 text-sm"

@@ -1,0 +1,932 @@
+;SDL
+
+;////////////////// INSTRUCTIONS //////////////////
+;Buttons go as follows, displayed in-game in this order:
+
+; inf1       - infantry squads
+; inf2       - infantry single units
+; empl       - Emplacements, AA, AT, Mortars, Howitzers
+; vehicles   - vehicles, armoured cars, supplies
+; tanks      - main battle tanks, TDs, SPGs
+; doctrine   - specific doctrine setups
+
+; TEMP: Note all levels have been brought down to 1 to remove unit locks.
+; Squads currently have an MP cost of 0 - their cost is currently calculated as the sum of their soldiers cost, see inf_ger.set
+; Check ../settings.set for syntax instructions!!
+; unit limits per game are not defined here but in gamemode presets
+
+;user defined set tags that should be featured on units:
+;all artillery heavyart cannon mediumcan heavycan light medium heavy infantry supply
+;these tags allow player to disable certain sets for custom setups like "no heavy artillery" 
+;//////////////////////////////////////////////////
+
+
+;_________________________________________________
+;|            Doctrine                            |
+;|________________________________________________|
+
+
+;===================================
+;        ALL-ROUND DOCTRINE
+;===================================
+
+
+; ======Tier1======
+
+; // Panhard
+{"doctrine_p204_f"
+	("squad_vehicle2_doctrine" side(ger) period(mid) vehicle(p204_f) crew1(tankman:3) crew2(tank_commander:1))
+    ("doctrine_t1" cool(180) d(mid_ger_allround) cost(5))
+	{tags "limit4"}
+}
+
+; // Pz35t + 2 Zb26 mg teams
+{"doctrine_pz35t"
+	("squad_vehicle4_doctrine" side(ger) period(mid) vehicle(pz35t) crew1(tankman:3) crew2(tank_commander:1) crew3(mg_26t:2) crew4(mg_asst_26t:2))
+	("doctrine_t1" cool(180) d(mid_ger_allround) cost(10))
+}
+
+; // 47mm Pak34t
+{"doctrine_towed_pak34t_mid"
+	("towed_gun_doctrine" side(ger) period(mid) vehicle(kettenkrad) crew_v(rifleman_1:1) cannon(47mm_pakt) crew_c(artilleryman:4)) 
+	("doctrine_t1" cool(240) d(mid_ger_allround) cost(20))
+}
+
+
+; ======Tier2======
+
+; // 200mm leLdgW
+{"doctrine_200mm_ldgw40_mid"
+	("squad_vehicle_doctrine" side(ger) period(mid) vehicle(200mm_ldgw40) crew(artilleryman:2)) 
+	("doctrine_t2" cool(300) d(mid_ger_allround) cost(30))
+}
+
+; // StuG III F
+{"doctrine_stug3f"
+	("squad_vehicle2_doctrine" side(ger) period(mid) vehicle(stug3f) crew1(tankman_stug:3) crew2(tank_commander_stug:1))
+	("doctrine_t2" cool(300) d(mid_ger_allround) cost(40))
+}
+
+; // Artillery Signaller
+{"doctrine_squad_ger_signaller_mid(ger)"
+	("squad_with1types_doctrine" side(ger) period(mid) c1(signaller:1))
+	("doctrine_t2" cool(300) d(mid_ger_allround) cost(60))
+	{tags "signaller"}
+}
+
+
+; ======Tier3======
+
+; // StuIG 33
+{"doctrine_sig33b"
+	("squad_vehicle2_doctrine" side(ger) period(mid) vehicle(sig33b) crew1(tankman_stug:4) crew2(tank_commander_stug:1))
+	("doctrine_t3" cool(480) d(mid_ger_allround) cost(70)) 
+}
+
+; // Nebelwerfer 41
+{"doctrine_150mm_nebelwerfer41"
+	("towed_gun_doctrine" side(ger) period(mid) vehicle(blitz3_6) crew_v(rifleman_1:1) cannon(150mm_nebelwerfer41) crew_c(artilleryman:4))
+	("doctrine_t3" cool(480) d(mid_ger_allround) cost(70))
+}
+
+; // 10cm SK18
+{"doctrine_105mm_sk18_mid"
+	("towed_gun_doctrine" side(ger) period(mid) vehicle(sdkfz7) crew_v(rifleman_1:1) cannon(105mm_sk18) crew_c(artilleryman:5))
+	("doctrine_t3" cool(480) d(mid_ger_allround) cost(90))
+}
+
+
+;===================================
+;        DEFENSIVE DOCTRINE
+;===================================
+
+
+; ======Tier1======
+
+; // Engineering Kettenkrad with goliath
+{"doctrine_kettenkrad_goliath_mid"
+	("squad_2vehicles2_4_doctrine" side(ger) period(mid) vehicle1(kettenkrad_eng) crew1(engineer_1:1) crew2(engineer_2:1) vehicle2(sdkfz302) crew3(tankman:0) crew4(tankman:0))
+	("doctrine_t1" cool(180) d(mid_ger_defensive) cost(5))
+	{tags "limit5"}
+}
+
+; // Flak37
+{"doctrine_37mm_flak37_mid"
+	("towed_gun_doctrine" side(ger) period(mid) vehicle(sdkfz10) crew_v(rifleman_1:1) cannon(37mm_flak37) crew_c(artilleryman:3))
+	("doctrine_t1" cool(180) d(mid_ger_defensive) cost(25))
+}
+
+; // Sdkfz10 with pak38
+{"doctrine_sdkfz10_pak38"
+	("squad_vehicle2_doctrine" side(ger) period(mid) vehicle(sdkfz10_pak38) crew1(tankman_pzjag:3) crew2(tank_commander_pzjag:1))
+	("doctrine_t1" cool(240) d(mid_ger_defensive) cost(25))
+}
+
+
+; ======Tier2======
+
+; // 120mm mortar
+{"doctrine_120mm_sgrw42_mid"
+	("towed_gun_doctrine" side(ger) period(mid) vehicle(blitz3_6) crew_v(rifleman_1:1) cannon(120mm_sgrw42) crew_c(artilleryman:2))
+	("doctrine_t2" cool(300) d(mid_ger_defensive) cost(30))
+}
+
+; // 5cm Flak 41
+{"doctrine_50mm_flak41_mid"
+	("towed_gun_doctrine" side(ger) period(mid) vehicle(sdkfz10) crew_v(rifleman_1:1) cannon(50mm_flak41) crew_c(artilleryman:5))
+	("doctrine_t2" cool(300) d(mid_ger_defensive) cost(25))
+}
+
+; // Marder II
+{"doctrine_marder2"
+	("squad_vehicle2_doctrine" side(ger) period(mid) vehicle(marder2) crew1(tankman_pzjag:3) crew2(tank_commander_pzjag:1))
+	("doctrine_t2" cool(300) d(mid_ger_defensive) cost(40))
+}
+
+
+; ======Tier3======
+
+; // Flak18
+{"doctrine_88mm_flak18_mid"
+	("towed_gun_doctrine" side(ger) period(mid) vehicle(sdkfz10) crew_v(rifleman_1:1) cannon(88mm_flak18) crew_c(artilleryman:5))
+	("doctrine_t3" cool(480) d(mid_ger_defensive) cost(65))
+}
+
+; // Sfh18
+{"doctrine_sfh18"
+	("towed_gun_doctrine" side(ger) period(mid) vehicle(sdkfz7) crew_v(rifleman_1:1) cannon(150mm_sfh18) crew_c(artilleryman:5))
+	("doctrine_t3" cool(480) d(mid_ger_defensive) cost(75))
+}
+
+; // Moerser 18
+{"doctrine_210mm_morser18_mid"
+	("towed_gun_doctrine" side(ger) period(mid) vehicle(sdkfz7) crew_v(rifleman_1:1) cannon(210mm_morser18) crew_c(artilleryman:6))
+	("doctrine_t3" cool(480) d(mid_ger_defensive) cost(85))
+}
+
+
+;===================================
+;       IRREGULAR DOCTRINE
+;===================================
+
+
+; ======Tier1======
+
+; // Bf-109 Airstrike
+{"doctrine_bf109_mid"
+	("squad_vehicle_doctrine" side(ger) period(mid) vehicle(bf109_f4) crew(pilot:1))
+	("doctrine_t1" cool(360) d(mid_ger_irregular) cost(10))
+	{action "airstrike:sc_50"}
+	{tags "limit3"}
+}
+
+; // G43 Sniper
+{"doctrine_squad_vetsniper(ger)"
+	("squad_with1types_doctrine" side(ger) period(mid) c1(sniper_elite:1))
+	("doctrine_t1" cool(180) d(mid_ger_irregular) cost(5))
+	{tags "limit5"}
+}
+
+; // BT7 beutepanzer with scouts
+{"doctrine_panzer742r"
+	("squad_vehicle4_doctrine" side(ger) period(mid) vehicle(panzer742r) crew1(tankman:2) crew2(tank_commander:1) crew3(scout_1:2) crew4(scout_2:2))
+	("doctrine_t1" cool(180) d(mid_ger_irregular) cost(15))
+}
+
+
+; ======Tier2======
+
+; // Brandenburgers
+{"doctrine_squad_brandenburger_mid(ger)"
+	("squad_with6types_doctrine" side(ger) period(mid) c1(brand_1:1) c2(brand_5:1) c3(brand_6:1) c4(brand_3:3) c5(brand_2:2) c6(brand_4:2))
+	("doctrine_t2" cool(300) d(mid_ger_irregular) cost(20))
+	{tags "limit2"}
+}
+
+; // Flammpanzer III
+{"doctrine_panzer3flamm"
+	("squad_vehicle2_doctrine" side(ger) period(mid) vehicle(panzer3_flamm) crew1(tankman:2) crew2(tank_commander:1)) 
+	("doctrine_t2" cool(300) d(mid_ger_irregular) cost(35))
+}
+
+; // SiG 33
+{"doctrine_150mm_sig33_mid"
+	("towed_gun_doctrine" side(ger) period(mid) vehicle(sdkfz10) crew_v(rifleman_1:1) cannon(150mm_sig33_late) crew_c(artilleryman:4))
+	("doctrine_t2" cool(300) d(mid_ger_irregular) cost(60))
+}
+
+
+; ======Tier3======
+
+; // Bf110 airstrike
+{"doctrine_bf110_mid"
+	("squad_vehicle_doctrine" side(ger) period(mid) vehicle(bf110_e2) crew(pilot:2))
+	("doctrine_t3" cool(360) d(mid_ger_irregular) cost(30))
+	{action "airstrike:sc_250"}
+}
+
+; // Nebelwerfer 42
+{"doctrine_210mm_nebelwerfer42_mid"
+	("towed_gun_doctrine" side(ger) period(mid) vehicle(blitz3_6) crew_v(rifleman_1:1) cannon(210mm_nebelwerfer42) crew_c(artilleryman:4))
+	("doctrine_t3" cool(480) d(mid_ger_irregular) cost(90))
+	{tags "limit1a"}
+}
+
+; // Pz756r, kv1 beutepanzer
+{"doctrine_pz756r"
+	("squad_vehicle2_doctrine" side(ger) period(mid) vehicle(pz756r) crew1(tankman:4) crew2(tank_commander:1))
+	("doctrine_t3" cool(480) d(mid_ger_irregular) cost(95))
+	{tags "limit1"}
+}
+
+
+;===================================
+;        OFFENSIVE DOCTRINE
+;===================================
+
+
+; ======Tier1======
+
+; // Sdkfz250a Command Vehicle
+{"doctrine_sdkfz250a_3_mid"
+	("squad_vehicle_doctrine" side(ger) period(mid) vehicle(sdkfz250a_3) crew(recon_rifle:3))
+	("doctrine_t1" cool(120) d(mid_ger_offensive) cost(5))
+	{tags "limit4"}
+}
+
+; // Panzer2f
+{"doctrine_panzer2f_mid"
+	("squad_vehicle2_doctrine" side(ger) period(mid) vehicle(panzer2f) crew1(tankman:2) crew2(tank_commander:1))
+	("doctrine_t1" cool(240) d(mid_ger_offensive) cost(15))
+}
+
+; // Panzer 38t G
+{"doctrine_pz38t_g"
+	("squad_vehicle2_doctrine" side(ger) period(mid) vehicle(pz38t_g) crew1(tankman:3) crew2(tank_commander:1)) 
+	("doctrine_t1" cool(240) d(mid_ger_offensive) cost(15))
+}
+
+
+; ======Tier2======
+
+; // Panzer-pioniere
+{"doctrine_squad_stosstrupp"
+	("squad_2vehicle10_doctrine" side(ger) period(mid) vehicle(sdkfz251c) crew1(pz_pio_rifle:3) crew2(pz_pio_sl:1) crew3(pz_pio_rifle_mine:2) crew4(pz_pio_rifle_gren:1) crew5(pz_pio_flame:1) crew6(pz_pio_rifle:4) crew7(pz_pio_sl_asst:1) crew8(pz_pio_mg:1) crew9(pz_pio_mg_asst:1) crew10(pz_pio_mg_ammo_carrier:1)) 
+	("doctrine_t2" cool(300) d(mid_ger_offensive) cost(20))
+}
+
+; // Panzer III L
+{"doctrine_panzer3l"
+	("squad_vehicle2_doctrine" side(ger) period(mid) vehicle(panzer3l) crew1(tankman:4) crew2(tank_commander:1)) 
+	("doctrine_t2" cool(300) d(mid_ger_offensive) cost(35))
+}
+
+; // Bison
+{"doctrine_bison_mid"
+	("squad_vehicle2_doctrine" side(ger) period(mid) vehicle(bison) crew1(tankman_stug:3) crew2(tank_commander_stug:1))
+	("doctrine_t2" cool(300) d(mid_ger_offensive) cost(60))
+}
+
+
+; ======Tier3======
+
+; // Panzer IV G
+{"doctrine_panzer4g"
+	("squad_vehicle2_doctrine" side(ger) period(mid) vehicle(panzer4g) crew1(tankman:4) crew2(tank_commander:1)) 
+	("doctrine_t3" cool(480) d(mid_ger_offensive) cost(60))
+}
+
+; // Sdkfz8 Flak18
+{"doctrine_sdkfz8_flak18_mid"
+	("squad_vehicle2_doctrine" side(ger) period(mid) vehicle(sdkfz8_flak18) crew1(tankman_stug:3) crew2(tank_commander_stug:1))
+	("doctrine_t3" cool(480) d(mid_ger_offensive) cost(65))
+}
+
+; // Tiger I H
+{"doctrine_tiger1h"
+	("squad_vehicle2_doctrine" side(ger) period(mid) vehicle(tiger1h) crew1(tankman:4) crew2(tank_commander:1))
+	("doctrine_t3" cool(480) d(mid_ger_offensive) cost(120))
+	{tags "limitf1"}
+}
+
+
+;===================================
+;        SUPPORT DOCTRINE
+;===================================
+
+
+; ======Tier1======
+
+; // LW officer
+{"doctrine_squad_ger_officer_lw_mid(ger)"
+	("squad_with1types_doctrine" side(ger) period(mid) c1(officer_lw:1))
+	("doctrine_t1" cool(240) d(mid_ger_support) cost(10))
+	{tags "limit2"}
+}
+
+; // Sdkfz 250/9 Ausf. A
+{"doctrine_sdkfz250a_9_mid"
+	("squad_vehicle2_doctrine" side(ger) period(mid) vehicle(sdkfz250a_9) crew1(tankman_scout:2) crew2(tank_commander_scout:1)) 
+	("doctrine_t1" cool(150) d(mid_ger_support) cost(10))
+}
+
+; // Sdkfz.251 Mortar
+{"doctrine_sdkfz251c_2_mid"
+	("squad_vehicle2_doctrine" side(ger) period(mid) vehicle(sdkfz251c_2) crew1(rifleman_1:1) crew2(artilleryman:3))
+	("doctrine_t1" cool(240) d(mid_ger_support) cost(10))
+	{tags "limit4"}
+}
+
+
+; ======Tier2======
+
+;// Recon plane
+{"doctrine_fi156_mid"
+	("squad_vehicle_doctrine" side(ger) period(mid) vehicle(fi156) crew(pilot:2))
+	("doctrine_t2" cool(360) d(mid_ger_support) cost(5))
+	{action "airstrike:reconnaissance_50"} 
+}
+
+; // Sd.kfz.7/2
+{"doctrine_sdkfz7_2_mid"
+	("squad_vehicle2_doctrine" side(ger) period(mid) vehicle(sdkfz7_2) crew1(tankman:3) crew2(tank_commander:1)) 
+	("doctrine_t2" cool(300) d(mid_ger_support) cost(20))
+}
+
+; // 75mm Pak9738
+{"doctrine_75mm_pak9738_mid"
+	("towed_gun_doctrine" side(ger) period(mid) vehicle(sdkfz10) crew_v(rifleman_1:1) cannon(75mm_pak9738) crew_c(artilleryman:4))
+	("doctrine_t2" cool(300) d(mid_ger_support) cost(30))
+}
+
+
+; ======Tier3======
+
+; // Pak43
+{"doctrine_88mm_pak43_mid"
+	("towed_gun_doctrine" side(ger) period(mid) vehicle(sdkfz7) crew_v(rifleman_1:1) cannon(88mm_pak4341) crew_c(artilleryman:4))
+	("doctrine_t3" cool(480) d(mid_ger_support) cost(80))
+}
+
+; // 170mm K18
+{"doctrine_170mm_k18_mid"
+	("towed_gun_doctrine" side(ger) period(mid) vehicle(sdkfz7) crew_v(rifleman_1:1) cannon(170mm_k18) crew_c(artilleryman:6))
+	("doctrine_t3" cool(480) d(mid_ger_support) cost(105))
+	{tags "limitf1"}
+}
+
+; // Karl Ger??t
+{"doctrine_600mm_thor_mid"
+	("squad_vehicle2_doctrine" side(ger) period(mid) vehicle(600mm_thor) crew1(tankman:4) crew2(tank_commander:1))
+	("doctrine_t3" cool(480) d(mid_ger_support) cost(105))
+	{tags "limitf1a"}
+}
+
+; // Panther D
+{"doctrine_panzer5d"
+	("squad_vehicle2_doctrine" side(ger) period(mid) vehicle(panzer5d) crew1(tankman:4) crew2(tank_commander:1))
+	("doctrine_t3" cool(480) d(mid_ger_support) cost(120))
+	{tags "limitf1b"}
+}
+
+;_________________________________________________
+;|             inf1                               |
+;|________________________________________________|
+
+;// german icons 100-199 (for sequence purchases)
+;// soviet icons 200-299 (for sequence purchases)
+;// finnish icons 300-399 (for sequence purchases)
+;// USA icons 400-499 (for sequence purchases)
+
+; // ----- ALLROUND -----
+;//t1
+("squad_with3types_doc" side(ger) name(squad_ersatz_rifle_mid_all) d(mid_ger_allround) period(mid) scf(1) cd(0) ci(0) g(squad_1) c1(ersatz_sl:1) c2(ersatz_sl_asst:1) c3(ersatz_rifle:8) b(inf1) t())
+
+;//t2
+("squad_with5types_doc" side(ger) name(squad_recon_mid_all) d(mid_ger_allround) period(mid) scf(1) cd(0) ci(0) g(squad_2_recon) c1(recon_sl:1) c2(recon_sl_asst:1) c3(recon_rifle:2) c4(recon_mg:1) c5(recon_mg_asst:1) b(inf1) t())
+
+("squad_with6types_doc" side(ger) name(squad_rifle_mid_all) d(mid_ger_allround) period(mid) scf(1) cd(0) ci(0) g(squad_2) c1(sl:1) c2(sl_asst:1) c3(rifleman_1:5) c4(mgun_1:1) c5(mgun_2:1) c6(mgun_3:1) b(inf1) t())
+
+
+("squad_vehicle_with6types_doc_i" side(ger) name(squad_rifle_motor_mid_all_1) d(mid_ger_allround) period(mid) scf(1) cd(0) ci(0) g(squad_2_mot) vehicle(blitz3_6) c1(rifleman_1:1) c2(sl:1) c3(sl_asst:1) c4(rifleman_1:6) c5(mgun_1:2) c6(mgun_2_rifle:2) b(inf1) i(100) t())
+("squad_vehicle_with6types_doc_i" side(ger) name(squad_rifle_motor_mid_all_2) d(mid_ger_allround) period(mid) scf(1) cd(0) ci(0) g(squad_2_mot) vehicle(blitz3_6) c1(rifleman_1:1) c2(sl:1) c3(sl_asst_sa:1) c4(rifleman_1:6) c5(mgun_1:2) c6(mgun_2_rifle:2) b(inf1) i(100) t())
+("squad_vehicle_with7types_doc_i" side(ger) name(squad_rifle_motor_mid_all_3) d(mid_ger_allround) period(mid) scf(1) cd(0) ci(0) g(squad_2_mot) vehicle(blitz3_6) c1(rifleman_1:1) c2(sl:1) c3(sl_asst_sa:1) c4(rifleman_1:5) c5(antitank_1:1) c6(mgun_1:2) c7(mgun_2_rifle:2) b(inf1) i(100) t())
+
+;//t2+
+("squad_with6types_doc" side(ger) name(squad_rifle_vet_mid_all) d(mid_ger_allround) period(mid) scf(1) cd(0) ci(0) g(squad_2) c1(vet_nco:1) c2(vet_nco_asst:1) c3(vet_rifle:5) c4(vet_mg:1) c5(vet_mg_asst:1) c6(vet_mg_ammo:1) b(inf1) t())
+
+;//t3+
+("squad_with6types_doc" side(ger) name(squad_rifle_elite_mid_all) d(mid_ger_allround) period(mid) scf(1) cd(0) ci(0) g(squad_3) c1(elite_sl_smg:1) c2(elite_sl_asst:1) c3(elite_rifle:6) c4(elite_mg:1) c5(elite_mg_asst:2) c6(elite_mg_ammo:1) b(inf1) t())
+
+;//t4
+("squad_with5types_doc" side(ger) name(squad_gebirgs_recon_mid_all) d(mid_ger_allround) period(mid) scf(1) cd(0) ci(0) g(squad_4) c1(gebirgs_recon_sl:1) c2(gebirgs_recon_sl_asst:1) c3(gebirgs_recon_rifle:4) c4(gebirgs_recon_mg:1) c5(gebirgs_recon_mg_asst:1) b(inf1) t())
+
+("squad_with5types_doc" side(ger) name(squad_gebirgs_mid_all) d(mid_ger_allround) period(mid) scf(1) cd(0) ci(0) g(squad_4) c1(gebirgs_sl:1) c2(gebirgs_sl_asst:1) c3(gebirgs_rifle:6) c4(gebirgs_mg:1) c5(gebirgs_mg_asst:1) b(inf1) t())
+
+; // ----- DEFENSIVE -----
+;//t1
+("squad_with3types_doc" side(ger) name(squad_ost_rifle_mid_def) d(mid_ger_defensive) period(mid) scf(1) cd(0) ci(0) g(squad_1) c1(sl:1) c2(osttrupp_1:4) c3(osttrupp_2:5) b(inf1) t())
+
+;//t2
+("squad_with5types_doc" side(ger) name(squad_recon_mid_def) d(mid_ger_defensive) period(mid) scf(1) cd(0) ci(0) g(squad_2_recon) c1(recon_sl:1) c2(recon_sl_asst:1) c3(recon_rifle:2) c4(recon_mg:1) c5(recon_mg_asst:1) b(inf1) t())
+
+("squad_with5types_doc" side(ger) name(squad_rifle_mid_def) d(mid_ger_defensive) period(mid) scf(1) cd(0) ci(0) g(squad_2) c1(sl:1) c2(sl_asst:1) c3(rifleman_1:5) c4(mg_26t:1) c5(mg_asst_26t:2) b(inf1) t())
+
+;("squad_with9types_doc_i" side(ger) name(squad_pio_mid_def_1) d(mid_ger_defensive) period(mid) scf(1) cd(0) ci(0) g(squad_2) c1(pioneer_sl:1) c2(pioneer_sl_asst:1) c3(pioneer_1:3) c4(pioneer_2:1) c5(pioneer_builder:1) c6(pioneer_4:2) c7(pioneer_mgun:1) c8(pioneer_mgun_asst:1) c9(pioneer_mgun_ammo_carrier:1) b(inf1) i(101) t())
+;("squad_with9types_doc_i" side(ger) name(squad_pio_mid_def_2) d(mid_ger_defensive) period(mid) scf(1) cd(0) ci(0) g(squad_2) c1(pioneer_sl:1) c2(pioneer_sl_asst:1) c3(pioneer_1:3) c4(pioneer_2:1) c5(pioneer_builder:1) c6(pioneer_4:2) c7(pioneer_mgun:1) c8(pioneer_mgun_asst:1) c9(pioneer_mgun_ammo_carrier:1) b(inf1) i(101) t())
+("squad_with10types_doc_i" side(ger) name(squad_pio_mid_def_3) d(mid_ger_defensive) period(mid) scf(1) cd(0) ci(0) g(squad_2) c1(pioneer_sl:1) c2(pioneer_sl_asst:1) c3(pioneer_1:2) c4(pioneer_2:1) c5(pioneer_builder:1) c6(pioneer_4:2) c7(pioneer_at:1) c8(pioneer_mgun:1) c9(pioneer_mgun_asst:1) c10(pioneer_mgun_ammo_carrier:1) b(inf1) i(101) t())
+
+;//t3
+("squad_with8types_doc" side(ger) name(squad_sturm_pio_mid_def) d(mid_ger_defensive) period(mid) scf(1) cd(0) ci(0) g(squad_3) c1(sturm_pio_sl:1) c2(sturm_pio_sl_asst:1) c3(sturm_pio_rifle_mine:1) c4(sturm_pio_rifle_gren:2) c5(sturm_pio_rifle:2) c6(sturm_pio_flame:1) c7(sturm_pio_mg:2) c8(sturm_pio_mg_asst:2) b(inf1) t())
+
+;//t4
+("squad_with6types_doc" side(ger) name(squad_blau_mid_def) d(mid_ger_defensive) period(mid) scf(1) cd(0) ci(0) g(squad_4) c1(blau_5:1) c2(blau_sl_asst:1) c3(blau_3:1) c4(blau_2:5) c5(blau_4:1) c6(blau_6:1) b(inf1) t())
+
+
+; // ----- IRREGULAR -----
+;//t1
+("squad_with2types_doc_i" side(ger) name(squad_straf_mid_irr_1) d(mid_ger_irregular) period(mid) scf(1) cd(0) ci(0) g(squad_1) c1(sl:1) c2(convict_1:9) b(inf1) i(102) t())
+("squad_with2types_doc_i" side(ger) name(squad_straf_mid_irr_2) d(mid_ger_irregular) period(mid) scf(1) cd(0) ci(0) g(squad_1) c1(sl:1) c2(convict_1:9) b(inf1) i(102) t())
+("squad_with3types_doc_i" side(ger) name(squad_straf_mid_irr_3) d(mid_ger_irregular) period(mid) scf(1) cd(0) ci(0) g(squad_1) c1(sl:1) c2(convict_1:8) c3(convict_mg:1) b(inf1) i(102) t())
+
+;//t2
+("squad_with5types_doc" side(ger) name(squad_recon_mid_irr) d(mid_ger_irregular) period(mid) scf(1) cd(0) ci(0) g(squad_2_recon) c1(recon_sl:1) c2(recon_sl_asst:1) c3(recon_rifle:2) c4(recon_mg42:1) c5(recon_mg_asst:1) b(inf1) t())
+
+("squad_with6types_doc" side(ger) name(squad_rifle_mid_irr) d(mid_ger_irregular) period(mid) scf(1) cd(0) ci(0) g(squad_2) c1(sl:1) c2(sl_asst:1) c3(rifleman_1:4) c4(rifle_gren:1) c5(mgun_42:1) c6(mgun_2_rifle:1) b(inf1) t())
+
+;//t3
+("squad_with8types_doc" side(ger) name(squad_sturm_pio_mid_irr) d(mid_ger_irregular) period(mid) scf(1) cd(0) ci(0) g(squad_3) c1(sturm_pio_sl:1) c2(sturm_pio_sl_asst:1) c3(sturm_pio_rifle_mine:1) c4(sturm_pio_rifle_gren:2) c5(sturm_pio_rifle:2) c6(sturm_pio_flame:1) c7(sturm_pio_mg:2) c8(sturm_pio_mg_asst:2) b(inf1) t())
+
+;//t4
+("squad_with6types_doc" side(ger) name(squad_fallschirm_recon_mid_irr) d(mid_ger_irregular) period(mid) scf(1) cd(0) ci(0) g(squad_4_recon) c1(fallsch_recon_sl:1) c2(fallsch_recon_sl_asst:1) c3(fallsch_recon_mg:1) c4(fallsch_recon_mg34:1) c5(fallsch_recon_mg_asst:1) c6(fallsch_recon_mg_asst_gren:1) b(inf1) t())
+
+("squad_with6types_doc" side(ger) name(squad_fallschirm_pio_mid_irr) d(mid_ger_irregular) period(mid) scf(1) cd(0) ci(0) g(squad_4) c1(fallsch_pio_sl:1) c2(fallsch_pio_sl_asst:1) c3(fallsch_pio_rifle_grenadier:1) c4(fallsch_pio_rifle:7) c5(fallsch_pio_mg:1) c6(fallsch_pio_mg_asst:1) b(inf1) t())
+
+("squad_with9types_doc" side(ger) name(squad_fallschirm_mid_irr) d(mid_ger_irregular) period(mid) scf(1) cd(0) ci(0) g(squad_4) c1(fallsch_sl:1) c2(fallsch_sl_asst:1) c3(fallsch_rifle_marksman:1) c4(fallsch_smg:1) c5(fallsch_sa:1) c6(fallsch_rifle_grenadier:1) c7(fallsch_rifle:2) c8(fallsch_mg:2) c9(fallsch_mg_asst:2) b(inf1) t())
+
+; // ----- OFFENSIVE -----
+;//t1
+("squad_with3types_doc" side(ger) name(squad_ersatz_rifle_mid_off) d(mid_ger_offensive) period(mid) scf(1) cd(0) ci(0) g(squad_1) c1(ersatz_sl:1) c2(ersatz_sl_asst:1) c3(ersatz_rifle:8) b(inf1) t())
+
+;//t2
+("squad_with5types_doc" side(ger) name(squad_pz_recon_mid_off) d(mid_ger_offensive) period(mid) scf(1) cd(0) ci(0) g(squad_2_recon) c1(pz_recon_sl:1) c2(pz_recon_sl_asst:1) c3(pz_recon_rifle:4) c4(pz_recon_mg:2) c5(pz_recon_mg_asst:2) b(inf1) t())
+
+("squad_with5types_doc" side(ger) name(squad_pz_rifle_mid_off) d(mid_ger_offensive) period(mid) scf(1) cd(0) ci(0) g(squad_2) c1(pz_sl:1) c2(pz_sl_asst:1) c3(pz_rifle:5) c4(pz_mg34:2) c5(pz_mg_asst:2) b(inf1) t())
+
+("squad_with9types_doc" side(ger) name(squad_pz_pio_mid_off) d(mid_ger_offensive) period(mid) scf(1) cd(0) ci(0) g(squad_2) c1(pz_pio_sl:1) c2(pz_pio_sl_asst:1) c3(pz_pio_rifle:3) c4(pz_pio_rifle_gren:2) c5(pz_pio_rifle_mine:1) c6(pz_pio_flame:1) c7(pz_pio_mg:1) c8(pz_pio_mg_asst:1) c9(pz_pio_mg_ammo_carrier:1) b(inf1) t())
+
+;//t2+
+("squad_with6types_doc" side(ger) name(squad_pz_rifle_vet_mid_off) d(mid_ger_offensive) period(mid) scf(1) cd(0) ci(0) g(squad_2) c1(vet_nco:1) c2(vet_nco_asst:1) c3(vet_sa:1) c4(vet_rifle:4) c5(vet_mg:2) c6(vet_mg_asst:2) b(inf1) t())
+
+;//t3+
+("squad_with6types_doc" side(ger) name(squad_gd_mid_off) d(mid_ger_offensive) period(mid) scf(1) cd(0) ci(0) g(squad_3) c1(gd_sl:1) c2(gd_sl_asst:1) c3(gd_sa:2) c4(gd_rifle:4) c5(gd_mg:2) c6(gd_mg_asst:2) b(inf1) t())
+
+("squad_with7types_doc" side(ger) name(squad_gd_pio_mid_off) d(mid_ger_offensive) period(mid) scf(1) cd(0) ci(0) g(squad_3) c1(gd_pio_sl:1) c2(gd_pio_sl_asst:1) c3(gd_pio_sa:2) c4(gd_pio_rifle:3) c5(gd_pio_flame:1) c6(gd_pio_mg:2) c7(gd_pio_mg_asst:2) b(inf1) t())
+
+;//t4
+("squad_with9types_doc" side(ger) name(squad_fallschirm_mid_off) d(mid_ger_offensive) period(mid) scf(1) cd(0) ci(0) g(squad_4) c1(fallsch_sl:1) c2(fallsch_sl_asst:1) c3(fallsch_rifle_marksman:1) c4(fallsch_smg:1) c5(fallsch_sa:1) c6(fallsch_rifle_grenadier:1) c7(fallsch_rifle:2) c8(fallsch_mg:2) c9(fallsch_mg_asst:2) b(inf1) t())
+
+; // ----- SUPPORT -----
+;//t1
+("squad_with3types_doc" side(ger) name(squad_ersatz_rifle_mid_sup) d(mid_ger_support) period(mid) scf(1) cd(0) ci(0) g(squad_1) c1(ersatz_sl:1) c2(ersatz_sl_asst:1) c3(ersatz_rifle:8) b(inf1) t())
+
+;//t2
+("squad_with5types_doc" side(ger) name(squad_recon_mid_sup) d(mid_ger_support) period(mid) scf(1) cd(0) ci(0) g(squad_2_recon) c1(recon_sl:1) c2(recon_sl_asst:1) c3(recon_rifle:2) c4(recon_mg:1) c5(recon_mg_asst:1) b(inf1) t())
+
+("squad_with6types_doc" side(ger) name(squad_rifle_mid_sup) d(mid_ger_support) period(mid) scf(1) cd(0) ci(0) g(squad_2) c1(sl:1) c2(sl_asst:1) c3(rifleman_1:5) c4(mgun_1:1) c5(mgun_2:1) c6(mgun_3:1) b(inf1) t())
+
+;//t2+
+("squad_with6types_doc" side(ger) name(squad_rifle_vet_mid_sup) d(mid_ger_support) period(mid) scf(1) cd(0) ci(0) g(squad_2) c1(vet_nco:1) c2(vet_nco_asst:1) c3(vet_rifle:5) c4(vet_mg:1) c5(vet_mg_asst:1) c6(vet_mg_ammo:1) b(inf1) t())
+
+;//t3+
+("squad_with6types_doc" side(ger) name(squad_gd_mid_def) d(mid_ger_support) period(mid) scf(1) cd(0) ci(0) g(squad_3) c1(gd_sl:1) c2(gd_sl_asst:1) c3(gd_sa:1) c4(gd_rifle:5) c5(gd_mg:2) c6(gd_mg_asst:2) b(inf1) t())
+
+
+;//t4
+("squad_with5types_doc" side(ger) name(squad_gebirgs_pio_mid_sup) d(mid_ger_support) period(mid) scf(1) cd(0) ci(0) g(squad_4) c1(gebirgs_pio_sl:1) c2(gebirgs_pio_sl_asst:1) c3(gebirgs_pio_rifle:6) c4(gebirgs_pio_mg:1) c5(gebirgs_pio_mg_asst:1) b(inf1) t())
+
+("squad_with5types_doc" side(ger) name(squad_gebirgs_mid_sup) d(mid_ger_support) period(mid) scf(1) cd(0) ci(0) g(squad_4) c1(gebirgs_sl:1) c2(gebirgs_sl_asst:1) c3(gebirgs_rifle:6) c4(gebirgs_mg:1) c5(gebirgs_mg_asst:1) b(inf1) t())
+
+
+
+;("squad_with3types" side(ger) name(squad_strafbatallion)	period(mid) cd(0) ci(0) g(squad_1) c1(convict_3:1) c2(convict_2:1) c3(convict_1:7)													b(inf1) t())
+
+;("squad_with5types" side(ger) name(squad_recon)				period(mid) cd(0) ci(0) g(squad_2_recon) c1(recon_sl:1) c2(recon_sl_asst:1) c3(recon_rifle:2) c4(recon_mg:1) c5(recon_mg_asst:1)			b(inf1) t())
+;("squad_with6types" side(ger) name(squad_regular)			period(mid) cd(0) ci(0)  g(squad_2) c1(nco:1) c2(nco_asst:1) c3(rifleman_1:5) c4(mgun_1:1) c5(mgun_2:1) c6(mgun_3:1)				b(inf1) t())
+;("squad_with5types" side(ger) name(squad_regular_armored)	period(mid) cd(0) ci(0)  g(squad_2) c1(nco:1) c2(nco_asst_sa:1) c3(rifleman_1:5) c4(mgun_1:2) c5(mgun_2_rifle:2)					b(inf1) t())
+;("squad_with9types" side(ger) name(squad_pionier)			period(mid) cd(0) ci(0)  g(squad_2) c1(pioneer_sl:1) c2(pioneer_sl_asst:1) c3(pioneer_1:2) c4(pioneer_2:1) c5(pioneer_3:1) c6(pioneer_4:2) c7(pioneer_at:1) c8(pioneer_mgun:1) c9(pioneer_mgun_asst:2) b(inf1) t())
+
+;("squad_with6types" side(ger) name(squad_regular_vet)		period(mid) cd(0) ci(0)  g(squad_3) c1(vet_nco:1) c2(vet_nco_asst:1) c3(vet_sa:2) c4(vet_rifle:4) c5(vet_mg:1) c6(vet_mg_asst:1)	b(inf1) t())
+
+;("squad_with6types" side(ger) name(squad_gd_mid)			period(mid) cd(0) ci(0)  g(squad_4) c1(gd_sl:1) c2(gd_sl_asst:1) c3(gd_sa:2) c4(gd_rifle:4) c5(gd_mg:2) c6(gd_mg_asst:2)		b(inf1) t())
+
+
+;_________________________________________________
+;|             inf2                               |
+;|________________________________________________|
+
+
+("single_with1type" side(ger) name(single_rifle)		period(mid) cd(0)   ci(0)   g(single_1)			c1(rifleman_1:1)					b(inf2) t() scf(1.25))
+("single_with1type" side(ger) name(single_smg)			period(mid) cd(0)   ci(0)   g(single_1)			c1(smg_1:1)							b(inf2) t() scf(1.25))
+("squad_with2types" side(ger) name(single_mg)			period(mid) cd(0)   ci(0)  g(single_mg)		c1(mgun_1:1) c2(mgun_2:1)			b(inf2) t())
+("squad_with2types" side(ger) name(single_at)			period(mid) cd(0)   ci(0)   g(single_at)		c1(antitank_1:1) c2(antitank_2:1)	b(inf2) t())
+("single_with2type" side(ger) name(single_riflegrenade)	period(mid) cd(0)   ci(0)  g(single_rifleg)	c1(antitank_3:1) c2(antitank_4:1)	b(inf2) t() scf(1.2))
+("squad_with1types" side(ger) name(single_ap_miner)		period(mid) cd(0)   ci(0)  g(single_apmine)	c1(miner-ap:2)						b(inf2) t(engineer miner))
+("squad_with1types" side(ger) name(single_at_miner)		period(mid) cd(0)   ci(0)  g(single_atmine)	c1(miner-at:2)						b(inf2) t(engineer miner))
+("squad_with2types" side(ger) name(single_engineer)		period(mid) cd(0)   ci(0)  g(single_eng)		c1(engineer_1:1) c2(engineer_2:1)	b(inf2) t(engineer builder))
+("squad_with1types" side(ger) name(single_flamer)		period(mid) cd(0)   ci(0)  g(single_flamer)	c1(flamer:1)						b(inf2) t(flamer))
+("squad_with2types" side(ger) name(single_tankman)		period(mid) cd(0) ci(0) g(single_crew)		c1(tank_commander:1) c2(tankman:4)	b(inf2) t())
+("squad_with1types" side(ger) name(single_medic)		period(mid) cd(0)   ci(0)   g(single_medic)		c1(medic:1)							b(inf2) t(medic))
+("squad_with1types" side(ger) name(single_sniper)		period(mid) cd(0) ci(0) g(single_sniper)	c1(sniper:1)						b(inf2) t(sniper))
+("squad_with1types" side(ger) name(single_officer)		period(mid) cd(0) ci(0) g(single_officer)	c1(officer:1)						b(inf2) t(officer))
+
+
+;_________________________________________________
+;|                  Emplacements                  |
+;|________________________________________________|
+
+
+{"inf_crate_ger"
+	("vehicle"  period(mid) cd(0) ci(0) t(supply cannon) side(ger) crew(rifleman_1:2) g(supplybox) b(inf2) cw(1) cp(0)
+	cost(50)) {round_multiple 1.0}
+}
+
+;AUTOMATIC WEAPONRY
+{"mg34_lafette"
+	("vehicle2" period(mid) cd(0) ci(0) t(cannon) side(ger) crew1(mg_crew:1) crew2(mg_crew_asst:1) g(empl1) b(empl) cw(2) cp(0)
+	cost(110))
+}
+{"20mm_flak30"
+	("vehicle"  period(mid) cd(0) ci(0) t(cannon) side(ger) crew(artilleryman:2) g(empl20) b(empl) cw(1) cp(0)
+	cost(190))
+}
+{"20mm_flakvierling38"
+	("vehicle"  period(mid) cd(0) ci(0) t(cannon) side(ger) crew(artilleryman:3) g(empl20) b(empl) cw(1) cp(0)
+	cost(315))
+}
+
+;// Doctrine Units
+{"37mm_flak37"
+	("vehicle"  period(mid) cd(0) ci(0) t(doctrineonly cannon) side(ger) crew(artilleryman:3) g(empl37) b(empl) cw(1) cp(0)
+	cost(270))
+}
+{"50mm_flak41"
+	("vehicle"  period(mid) cd(0) ci(0) t(doctrineonly cannon) side(ger) crew(artilleryman:5) g(empl50) b(empl) cw(1) cp(0)
+	cost(500))
+}
+{"88mm_flak18"
+	("vehicle"  period(mid) cd(0) ci(0) t(doctrineonly cannon mediumcan) side(ger) crew(artilleryman:5) g(empl6) b(empl) cw(1) cp(0)
+	cost(750))
+}
+
+; AT WEAPONRY
+{"28mm_pzb41"
+	("vehicle"  period(mid) cd(0) ci(0) t(cannon) side(ger) crew(artilleryman:3) g(empl2) b(empl) cw(1) cp(0)
+	cost(155))
+}
+{"37mm_pak36"
+	("vehicle"  period(mid) cd(0) ci(0) t(cannon) side(ger) crew(artilleryman:4) g(empl3) b(empl) cw(1) cp(0)
+	cost(180))
+}
+{"50mm_pak38"
+	("vehicle"  period(mid) cd(0) ci(0) t(cannon mediumcan) side(ger) crew(artilleryman:4) g(empl4) b(empl) cw(1) cp(0)
+	cost(250))
+}
+{"75mm_pak40"
+	("vehicle"  period(mid) cd(0) ci(0) t(cannon mediumcan) side(ger) crew(artilleryman:4) g(empl6) b(empl) cw(1) cp(0)
+	cost(500))
+}
+
+;// Doctrine Units
+{"47mm_pakt"
+	("vehicle"  period(mid) cd(0) ci(0) t(doctrineonly cannon) side(ger) crew(artilleryman:4) g(empl3) b(empl) cw(1) cp(0)
+	cost(210))
+}
+{"75mm_pak9738"
+	("vehicle"  period(mid) cd(0) ci(0) t(doctrineonly cannon mediumcan) side(ger) crew(artilleryman:4) g(empl5) b(empl) cw(1) cp(0)
+	cost(400))
+}
+{"88mm_pak4341"
+	("vehicle"  period(mid) cd(0) ci(0) t(doctrineonly cannon heavycan) side(ger) crew(artilleryman:4) g(empl7) b(empl) cw(1) cp(0)
+	cost(950))
+}
+
+;HOWITZERS
+{"80mm_sgrw34"
+	("vehicle"  period(mid) cd(0) ci(0) t(cannon) side(ger) crew(artilleryman:2) g(empl10) b(empl) cw(1) cp(0)
+	cost(250))
+}
+{"75mm_leig18"
+	("vehicle"  period(mid) cd(0) ci(0) t(cannon mediumcan) side(ger) crew(artilleryman:4) g(empl8) b(empl) cw(1) cp(0)
+	cost(340))
+}
+{"105mm_lefh18"
+	("vehicle"  period(mid) cd(0) ci(0) t(artillery) side(ger) crew(artilleryman:4) g(empl11) b(empl) cw(1) cp(0)
+	cost(750))
+}
+{"105mm_lefh18_40"
+	("vehicle"  period(mid) cd(0) ci(0) t(artillery) side(ger) crew(artilleryman:4) g(empl11) b(empl) cw(1) cp(0)
+	cost(800))
+}
+
+;// Doctrine Units
+{"75mm_legebig18"
+	("vehicle"  period(mid) cd(0) ci(0) t(doctrineonly cannon mediumcan) side(ger) crew(artilleryman:4) g(empl9) b(empl) cw(1) cp(0)
+	cost(340))
+}
+{"120mm_sgrw42"
+	("vehicle"  period(mid) cd(0) ci(0) t(doctrineonly artillery) side(ger) crew(artilleryman:2) g(empl21) b(empl) cw(1) cp(0)
+	cost(450))
+}
+{"200mm_ldgw40"
+	("vehicle"  period(mid) cd(0) ci(0) t(doctrineonly heavyart artillery) side(ger) crew(artilleryman:2) g(empl18) b(empl) cw(1) cp(0)
+	cost(550))
+}
+{"150mm_nebelwerfer41"
+	("vehicle"  period(mid) cd(0) ci(0) t(doctrineonly heavyart artillery) side(ger) crew(artilleryman:4) g(empl12) b(empl) cw(1) cp(0)
+	cost(800))
+}
+{"210mm_nebelwerfer42"
+	("vehicle"  period(mid) cd(0) ci(0) t(doctrineonly heavyart artillery) side(ger) crew(artilleryman:4) g(empl29) b(empl) cw(1) cp(0)
+	cost(900))
+}
+{"150mm_sig33_late"
+	("vehicle"  period(mid) cd(0) ci(0) t(doctrineonly heavyart artillery) side(ger) crew(artilleryman:4) g(empl13) b(empl) cw(1) cp(0)
+	cost(800))
+}
+{"105mm_sk18"
+	("vehicle"  period(mid) cd(0) ci(0) t(doctrineonly heavyart artillery) side(ger) crew(artilleryman:5) g(empl19) b(empl) cw(1) cp(0)
+	cost(850))
+}
+{"150mm_sfh18"
+	("vehicle"  period(mid) cd(0) ci(0) t(doctrineonly heavyart artillery) side(ger) crew(artilleryman:5) g(empl14) b(empl) cw(1) cp(0)
+	cost(1000))
+}
+{"210mm_morser18"
+	("vehicle"  period(mid) cd(0) ci(0) t(doctrineonly heavyart artillery) side(ger) crew(artilleryman:6) g(empl15) b(empl) cw(1) cp(0)
+	cost(1500))
+}
+{"170mm_k18"
+	("vehicle"  period(mid) cd(0) ci(0) t(doctrineonly heavyart artillery) side(ger) crew(artilleryman:6) g(empl16) b(empl) cw(1) cp(0)
+	cost(1500))
+}
+{"600mm_thor"
+	("vehicle"  period(mid) cd(0) ci(0) t(doctrineonly heavyart artillery) side(ger) crew(artilleryman:5) g(empl17) b(empl) cw(1) cp(0)
+	cost(2000))
+}
+
+
+;_________________________________________________
+;|               Wheeled vehicles                 |
+;|________________________________________________|
+
+{"bmw_r71"
+	("vehicle2" period(mid) cd(0) ci(0) g(wheel0) side(ger) t(vehicle) crew1(rifleman_1:1) crew2(mgun_2:1) b(vehicles) cw(1) cp(0)
+	cost(40))
+}
+{"kubelwagen_mg"
+	("vehicle"  period(mid) cd(0) ci(0) g(wheel1) side(ger) t(vehicle) crew(mgun_2:2) b(vehicles) cw(1) cp(0)
+	cost(55))
+}
+{"kettenkrad"
+	("vehicle"  period(mid) cd(0) ci(0) g(wheel7) side(ger) t(vehicle) crew(rifleman_1:1) b(vehicles) cw(1) cp(0)
+	cost(5))
+}
+{"kfz70"
+	("vehicle"  period(mid) cd(0) ci(0) g(wheel2) side(ger) t(vehicle) crew(rifleman_1:1) b(vehicles) cw(1) cp(0)
+	cost(15))
+}
+{"blitz3_6"
+	("vehicle"  period(mid) cd(0) ci(0) g(wheel2) side(ger) t(vehicle) crew(rifleman_1:1) b(vehicles) cw(1) cp(0)
+	cost(20))
+}
+{"sdkfz10"
+	("vehicle"  period(mid) cd(0) ci(0) g(wheel2) side(ger) t(vehicle) crew(rifleman_1:1) b(vehicles) cw(1) cp(0)
+	cost(20))
+}
+{"sdkfz7"
+	("vehicle"  period(mid) cd(0) ci(0) g(wheel2) side(ger) t(vehicle) crew(rifleman_1:1) b(vehicles) cw(1) cp(0)
+	cost(20))
+}
+{"sdkfz251c"
+	("vehicle2"  period(mid) cd(0) ci(0) g(wheel3) side(ger) t(vehicle) crew1(mg_crew_asst:1) crew2(mg_crew:1) b(vehicles) cw(2) cp(0)
+	cost(110))
+}
+{"sdkfz221"
+	("vehicle2" period(mid) cd(0) ci(0) g(wheel4) side(ger) t(vehicle) crew1(tankman_scout:1) crew2(tank_commander_scout:1) b(vehicles) cw(2) cp(0)
+	cost(130))
+}
+{"sdkfz250a_11"
+	("vehicle"  period(mid) cd(0) ci(0) g(wheel9) side(ger) t(vehicle) crew(artilleryman:4) b(vehicles) cw(2) cp(0)
+	cost(180))
+}
+{"blitz3_6_flak30"
+	("vehicle" period(mid) cd(0) ci(0) g(wheel5) side(ger) t(vehicle) crew(artilleryman:4) b(vehicles) cw(2) cp(0)
+	cost(220))
+}
+{"sdkfz222a"
+	("vehicle2" period(mid) cd(0) ci(0) g(wheel11) side(ger) t(vehicle) crew1(tankman_scout:2) crew2(tank_commander_scout:1) b(vehicles) cw(2) cp(0)
+	cost(225))
+}
+{"sdkfz231"
+	("vehicle2" period(mid) cd(0) ci(0) g(wheel12) side(ger) t(vehicle) crew1(tankman_scout:3) crew2(tank_commander_scout:1) b(vehicles) cw(2) cp(0)
+	cost(225))
+}
+{"blitz3_6_art_ammo"
+	("vehicle"  period(mid) cd(0) ci(0) g(supply1) side(ger) t(vehicle supply) crew(rifleman_1:1) b(vehicles) cw(1) cp(0)
+	cost(190))
+}
+{"blitz3_6_fuel"
+	("vehicle"  period(mid) cd(0) ci(0) g(supply2) side(ger) t(vehicle supply) crew(rifleman_1:1) b(vehicles) cw(1) cp(0)
+	cost(90))
+}
+{"blitz3_6_engineering"
+	("vehicle2" period(mid) cd(0) ci(0) g(supply3) side(ger) t(vehicle supply engtruck) crew1(engineer_1:1) crew2(engineer_2:1)  b(vehicles) cw(1) cp(0)
+	cost(80))
+}
+
+;// Doctrine Units
+{"kettenkrad_eng"
+	("vehicle"  period(mid) cd(0) ci(0) g(wheel7) side(ger) t(doctrineonly vehicle) crew(engineer_1:1) b(vehicles) cw(1) cp(0)
+	cost(50))
+}
+{"sdkfz251c_2"
+	("vehicle2" period(mid) cd(0) ci(0) g(wheel10) side(ger) t(doctrineonly vehicle) crew1(rifleman_1:1) crew2(artilleryman:3) b(vehicles) cw(2) cp(0)
+	cost(280))
+}
+{"sdkfz250a_3"
+	("vehicle"  period(mid) cd(0) ci(0) g(wheel8) side(ger) t(doctrineonly vehicle) crew(recon_rifle:3) b(vehicles) cw(10) cp(0)
+	cost(250))
+}
+{"sdkfz250a_9"
+	("vehicle2" period(mid) cd(0) ci(0) g(wheel13) side(ger) t(doctrineonly vehicle) crew1(tankman_scout:2) crew2(tank_commander_scout:1) b(vehicles) cw(2) cp(0)
+	cost(225))
+}
+{"p204_f"
+	("vehicle2" period(mid) cd(0) ci(0) g(wheel13) side(ger) t(doctrineonly vehicle) crew1(tankman:3) crew2(tank_commander:1) b(vehicles) cw(2) cp(0)
+	cost(270))
+}
+{"sdkfz10_pak38"
+	("vehicle"  period(mid) cd(0) ci(0) g(wheel14) side(ger) t(doctrineonly vehicle) crew(artilleryman:3) b(vehicles) cw(2) cp(0)
+	cost(310))
+}
+{"sdkfz7_2"
+	("vehicle2" period(mid) cd(0) ci(0) g(wheel6) side(ger) t(doctrineonly vehicle) crew1(tankman:3) crew2(tank_commander:1) b(vehicles) cw(2) cp(0)
+	cost(350))
+}
+{"sdkfz8_flak18"
+	("vehicle2" period(mid) cd(0) ci(0) g(wheel15) side(ger) t(doctrineonly vehicle) crew1(tankman_stug:3) crew2(tank_commander_stug:1) b(vehicles) cw(2) cp(0)
+	cost(800))
+}
+
+
+;_________________________________________________
+;|        Main Battle Tanks and SPGs              |
+;|________________________________________________|
+
+
+;LIGHT
+{"panzer1b"
+	("vehicle2" period(mid) cd(0) ci(0) t(light) side(ger) crew1(tankman:1) crew2(tank_commander:1) g(light0) b(tanks) cw(4) cp(0)
+	cost(105))
+}
+{"panzer2c"
+	("vehicle2" period(mid) cd(0) ci(0) t(light) side(ger) crew1(tankman:2) crew2(tank_commander:1) g(light2) b(tanks) cw(4) cp(0)
+	cost(225))
+}
+{"panzer2f"
+	("vehicle2" period(mid) cd(0) ci(0) t(light) side(ger) crew1(tankman:2) crew2(tank_commander:1) g(light2) b(tanks) cw(4) cp(0)
+	cost(250))
+}
+{"pz38t_f"
+	("vehicle2" period(mid) cd(0) ci(0) t(light) side(ger) crew1(tankman:3) crew2(tank_commander:1) g(light5) b(tanks) cw(4) cp(0)
+	cost(250))
+}
+
+;// Doctrine Units
+{"sdkfz302"
+	("vehicle"  period(mid) cd(0) ci(0) t(doctrineonly light limit3) side(ger) crew(tankman:0) g(light1) b(tanks) cw(0) cp(0)
+	cost(0))
+}
+{"panzer731r"
+	("vehicle2" period(mid) cd(0) ci(0) t(doctrineonly light) side(ger) crew1(tankman:1) crew2(tank_commander:1) g(light0) b(tanks) cw(4) cp(0)
+	cost(90))
+}
+{"panzer742r"
+	("vehicle2" period(mid) cd(0) ci(0) t(doctrineonly light) side(ger) crew1(tankman:2) crew2(tank_commander:1) g(light2) b(tanks) cw(4) cp(0)
+	cost(260))
+}
+{"pz35t"
+	("vehicle2" period(mid) cd(0) ci(0) t(doctrineonly light) side(ger) crew1(tankman:3) crew2(tank_commander:1) g(light2) b(tanks) cw(4) cp(0)
+	cost(240))
+}
+{"pz38t_a"
+	("vehicle2" period(mid) cd(0) ci(0) t(doctrineonly light) side(ger) crew1(tankman:3) crew2(tank_commander:1) g(light6) b(tanks) cw(4) cp(0)
+	cost(250))
+}
+{"pz38t_g"
+	("vehicle2" period(mid) cd(0) ci(0) t(doctrineonly light) side(ger) crew1(tankman:3) crew2(tank_commander:1) g(light2) b(tanks) cw(4) cp(0)
+	cost(285))
+}
+
+;MEDIUM
+{"panzer3j"
+	("vehicle2" period(mid) cd(0) ci(0) t(medium) side(ger) crew1(tankman:4) crew2(tank_commander:1) g(medium1) b(tanks) cw(6) cp(0)
+	cost(325))
+}
+{"panzer3j1"
+	("vehicle2" period(mid) cd(0) ci(0) t(medium) side(ger) crew1(tankman:4) crew2(tank_commander:1) g(medium2) b(tanks) cw(6) cp(0)
+	cost(380))
+}
+{"panzer4f1"
+	("vehicle2" period(mid) cd(0) ci(0) t(medium) side(ger) crew1(tankman:4) crew2(tank_commander:1) g(medium3) b(tanks) cw(6) cp(0)
+	cost(430))
+}
+{"panzer4f2"
+	("vehicle2" period(mid) cd(0) ci(0) t(medium) side(ger) crew1(tankman:4) crew2(tank_commander:1) g(medium4) b(tanks) cw(6) cp(0)
+	cost(520))
+}
+
+;// Doctrine Units
+{"panzer3e"
+	("vehicle2" period(mid) cd(0) ci(0) t(doctrineonly medium) side(ger) crew1(tankman:4) crew2(tank_commander:1) g(medium0) b(tanks) cw(6) cp(0)
+	cost(310))
+}
+{"panzer3f"
+	("vehicle2" period(mid) cd(0) ci(0) t(doctrineonly medium) side(ger) crew1(tankman:4) crew2(tank_commander:1) g(medium2) b(tanks) cw(6) cp(0)
+	cost(340))
+}
+{"panzer3l"
+	("vehicle2" period(mid) cd(0) ci(0) t(doctrineonly medium) side(ger) crew1(tankman:4) crew2(tank_commander:1) g(medium2) b(tanks) cw(6) cp(0)
+	cost(400))
+}
+{"panzer4d"
+	("vehicle2" period(mid) cd(0) ci(0) t(doctrineonly medium) side(ger) crew1(tankman:4) crew2(tank_commander:1) g(medium5) b(tanks) cw(6) cp(0)
+	cost(370))
+}
+{"panzer3_flamm"
+	("vehicle2" period(mid) cd(0) ci(0) t(doctrineonly medium) side(ger) crew1(tankman:2) crew2(tank_commander:1) g(tanks) b(tanks) cw(6) cp(0)
+	cost(350))
+}
+{"panzer4g"
+	("vehicle2" period(mid) cd(0) ci(0) t(doctrineonly medium) side(ger) crew1(tankman:4) crew2(tank_commander:1) g(medium7) b(tanks) cw(6) cp(0)
+	cost(560))
+}
+
+;HEAVY
+
+;// Doctrine Units
+{"pz756r"
+	("vehicle2" period(mid) cd(0) ci(0) t(doctrineonly heavy) side(ger) crew1(tankman:4) crew2(tank_commander:1) g(heavy3) b(tanks) cw(8) cp(0)
+	cost(850))
+}
+{"tiger1h"
+	("vehicle2" period(mid) cd(0) ci(0) t(doctrineonly heavy) side(ger) crew1(tankman:4) crew2(tank_commander:1) g(heavy2) b(tanks) cw(8) cp(0)
+	cost(1250))
+}
+{"panzer5d"
+	("vehicle2" period(mid) cd(0) ci(0) t(doctrineonly heavy) side(ger) crew1(tankman:4) crew2(tank_commander:1) g(heavy2) b(tanks) cw(8) cp(0)
+	cost(1250))
+}
+
+;SPG
+{"panzerjager1"
+	("vehicle2" period(mid) cd(0) ci(0) t(light) side(ger) crew1(tankman_pzjag:2) crew2(tank_commander_pzjag:1) g(spg0) b(tanks) cw(4) cp(0)
+	cost(230))
+}
+{"stug3b"
+	("vehicle2" period(mid) cd(0) ci(0) t(medium) side(ger) crew1(tankman_stug:3) crew2(tank_commander:1) g(spg1) b(tanks) cw(6) cp(0)
+	cost(370))
+}
+
+;// Doctrine Units
+{"marder2"
+	("vehicle2" period(mid) cd(0) ci(0) t(doctrineonly light) side(ger) crew1(tankman_pzjag:3) crew2(tank_commander_pzjag:1) g(spg2) b(tanks) cw(4) cp(0)
+	cost(510))
+}
+{"stug3f"
+	("vehicle2" period(mid) cd(0) ci(0) t(doctrineonly medium) side(ger) crew1(tankman_stug:3) crew2(tank_commander:1) g(spg3) b(tanks) cw(6) cp(0)
+	cost(540))
+}
+{"bison"
+	("vehicle2" period(mid) cd(0) ci(0) t(doctrineonly light) side(ger) crew1(tankman:3) crew2(tank_commander:1) g(spg4) b(tanks) cw(4) cp(0)
+	cost(870))
+}
+{"sig33b"
+	("vehicle2" period(mid) cd(0) ci(0) t(doctrineonly medium) side(ger) crew1(tankman_stug:4) crew2(tank_commander_stug:1) g(spg4) b(tanks) cw(6) cp(0)
+	cost(980))
+}
+
+;Plane
+{"bf109_f4"
+	("vehicle"  period(mid) cd(0) ci(0) t(doctrineonly) side(ger) crew(pilot:1) g(spg7) b(vehicles) cw(0) cp(0)
+	cost(300))
+}
+{"bf110_e2"
+	("vehicle"  period(mid) cd(0) ci(0) t(doctrineonly) side(ger) crew(pilot:2) g(spg7) b(vehicles) cw(0) cp(0)
+	cost(500))
+}
+{"fi156"
+	("vehicle"  period(mid) cd(0) ci(0) t(doctrineonly) side(ger) crew(pilot:1) g(spg8) b(vehicles) cw(0) cp(0)
+	cost(100))
+}
