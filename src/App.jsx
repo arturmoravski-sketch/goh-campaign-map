@@ -402,6 +402,7 @@ export default function GOHCampaignMap() {
   const [selectedProvinceId, setSelectedProvinceId] = useState("minsk");
   const [turn, setTurn] = useState(1);
   const [battleLog, setBattleLog] = useState([]);
+  const [battleRequests, setBattleRequests] = useState([]);
   const [battleForm, setBattleForm] = useState({ province: "minsk", attacker: "G2", defender: "S2", winner: "germany", losses: "средние", note: "", encircled: false, blitzAdvance: false });
   const [unitCalculator, setUnitCalculator] = useState({ side: "germany", strength: 3, budget: 7000, doctrine: "Универсальная", unitId: "g-u-riflemen" });
   const [unitRows, setUnitRows] = useState(initialUnitRows);
@@ -484,13 +485,14 @@ export default function GOHCampaignMap() {
   }, [networkEnabled, playerSide]);
 
   function getCampaignSnapshot() {
-    return { provinces, links, armies, battleLog, turn, unitRows };
+    return { provinces, links, armies, battleLog, battleRequests, turn, unitRows };
   }
 
   function applyNetworkState(state) {
     setProvinces(Array.isArray(state.provinces) ? mergeCampaignProvinces(state.provinces) : campaignStartProvinces);
     setArmies(Array.isArray(state.armies) ? state.armies : []);
     setBattleLog(Array.isArray(state.battleLog) ? state.battleLog : []);
+    setBattleRequests(Array.isArray(state.battleRequests) ? state.battleRequests : []);
     setUnitRows(Array.isArray(state.unitRows) ? state.unitRows.map((row) => ({ doctrine: commonDoctrine, resource: "ЛС", command: 0, ...row })) : []);
     setTurn(Number(state.turn) || 1);
   }
@@ -620,10 +622,11 @@ export default function GOHCampaignMap() {
   }
 
   function resetCampaign() {
-    const resetState = { provinces: campaignStartProvinces, links, armies: initialArmies, battleLog: [], turn: 1, unitRows: initialUnitRows };
+    const resetState = { provinces: campaignStartProvinces, links, armies: initialArmies, battleLog: [], battleRequests: [], turn: 1, unitRows: initialUnitRows };
     setProvinces(resetState.provinces);
     setArmies(resetState.armies);
     setBattleLog(resetState.battleLog);
+    setBattleRequests(resetState.battleRequests);
     setUnitRows(resetState.unitRows);
     setUnitCalculator({ side: "germany", strength: 3, budget: 7000, doctrine: "Универсальная", unitId: "g-u-riflemen" });
     setTurn(resetState.turn);
@@ -654,6 +657,7 @@ export default function GOHCampaignMap() {
       setProvinces(Array.isArray(data.provinces) ? mergeCampaignProvinces(data.provinces) : campaignStartProvinces);
       setArmies(Array.isArray(data.armies) ? data.armies : initialArmies);
       setBattleLog(Array.isArray(data.battleLog) ? data.battleLog : []);
+      setBattleRequests(Array.isArray(data.battleRequests) ? data.battleRequests : []);
       setUnitRows(Array.isArray(data.unitRows) ? data.unitRows.map((row) => ({ doctrine: commonDoctrine, resource: "ЛС", command: 0, ...row })) : initialUnitRows);
       setTurn(Number(data.turn) || 1);
       setMessage("Кампания загружена.");
@@ -664,9 +668,9 @@ export default function GOHCampaignMap() {
 
   function addBattle() {
     if (networkEnabledRef.current) {
-      sendNetworkAction("addBattle", { battleForm });
+      sendNetworkAction("submitBattleRequest", { battleForm });
       setBattleForm((prev) => ({ ...prev, note: "", encircled: false, blitzAdvance: false }));
-      setMessage("Бой отправлен на сервер кампании.");
+      setMessage("Заявка на бой отправлена второй стороне.");
       return;
     }
 
@@ -729,6 +733,16 @@ export default function GOHCampaignMap() {
   function moveArmy(armyId, provinceId) {
     updateArmy(armyId, { province: provinceId });
     setSelectedProvinceId(provinceId);
+  }
+
+  function confirmBattleRequest(id) {
+    sendNetworkAction("confirmBattleRequest", { id });
+    setMessage("Заявка подтверждена. Сервер обновит карту и журнал.");
+  }
+
+  function rejectBattleRequest(id) {
+    sendNetworkAction("rejectBattleRequest", { id });
+    setMessage("Заявка отклонена.");
   }
 
   return (
@@ -902,7 +916,7 @@ export default function GOHCampaignMap() {
 
             <Panel>
               <PanelBody className="space-y-3">
-                <h3 className="flex items-center gap-2 font-bold"><Icon>⚔️</Icon> Добавить результат боя</h3>
+                <h3 className="flex items-center gap-2 font-bold"><Icon>⚔️</Icon> {networkEnabled ? "Создать заявку на бой" : "Добавить результат боя"}</h3>
                 <div className="grid grid-cols-2 gap-2">
                   <select className="col-span-2 rounded-xl border px-2 py-2 text-sm" value={battleForm.province} onChange={(e) => setBattleForm({ ...battleForm, province: e.target.value })}>
                     {provinces.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -941,9 +955,60 @@ export default function GOHCampaignMap() {
                   </label>
                   <input className="col-span-2 rounded-xl border px-3 py-2 text-sm" placeholder="Примечание" value={battleForm.note} onChange={(e) => setBattleForm({ ...battleForm, note: e.target.value })} />
                 </div>
-                <AppButton onClick={addBattle} className="w-full"><Icon>＋</Icon>Записать бой</AppButton>
+                <AppButton onClick={addBattle} className="w-full"><Icon>＋</Icon>{networkEnabled ? "Отправить заявку" : "Записать бой"}</AppButton>
               </PanelBody>
             </Panel>
+
+            {networkEnabled && (
+              <Panel>
+                <PanelBody className="space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="font-bold">Заявки на бой</h3>
+                    <span className="rounded-full bg-stone-100 px-2 py-1 text-xs font-bold text-stone-700">{battleRequests.length}</span>
+                  </div>
+                  {battleRequests.length === 0 && <p className="text-sm text-stone-500">Ожидающих заявок нет.</p>}
+                  {battleRequests.map((request) => (
+                    <div key={request.id} className={`space-y-2 rounded-2xl border p-3 ${request.canConfirm ? "border-amber-300 bg-amber-50" : "bg-white"}`}>
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <div className="font-bold">{request.provinceName}</div>
+                          <div className="text-xs text-stone-500">Ход {request.turn} · {request.crisisPhase}</div>
+                        </div>
+                        <span className="rounded-full bg-white px-2 py-1 text-xs font-bold text-stone-700">
+                          {request.canConfirm ? "Нужно подтвердить" : "Ожидает соперника"}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div className="rounded-xl bg-white/80 p-2">
+                          <div className="text-xs font-bold text-stone-500">Атака</div>
+                          <div>{request.attackerLabel}</div>
+                        </div>
+                        <div className="rounded-xl bg-white/80 p-2">
+                          <div className="text-xs font-bold text-stone-500">Оборона</div>
+                          <div>{request.defenderLabel}</div>
+                        </div>
+                      </div>
+                      <div className="text-sm">
+                        Победитель: <b>{ownerConfig[request.winner]?.label}</b> · Потери: <b>{request.losses}</b>
+                      </div>
+                      {(request.encircled || request.blitzAdvance || request.note) && (
+                        <div className="text-xs text-stone-600">
+                          {request.note && <div>{request.note}</div>}
+                          {request.encircled && <div>Окружение отмечено.</div>}
+                          {request.blitzAdvance && <div>Блицкриг-шаг отмечен.</div>}
+                        </div>
+                      )}
+                      {request.canConfirm && (
+                        <div className="grid grid-cols-2 gap-2">
+                          <AppButton onClick={() => confirmBattleRequest(request.id)}>Подтвердить</AppButton>
+                          <AppButton onClick={() => rejectBattleRequest(request.id)} variant="outline">Отклонить</AppButton>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </PanelBody>
+              </Panel>
+            )}
 
             <Panel>
               <PanelBody className="space-y-3">
