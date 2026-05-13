@@ -9,6 +9,21 @@ const distDir = join(rootDir, "dist");
 const savePath = join(rootDir, "campaign-save.json");
 const clients = new Set();
 
+const frontSlots = {
+  germany: ["germany_north", "germany_center", "germany_south", "germany_reserve"],
+  ussr: ["ussr_north", "ussr_west", "ussr_southwest", "ussr_stavka"],
+};
+const armyFrontById = {
+  G1: "germany_north",
+  G2: "germany_center",
+  G3: "germany_south",
+  GR: "germany_reserve",
+  S1: "ussr_north",
+  S2: "ussr_west",
+  S3: "ussr_southwest",
+  SR: "ussr_stavka",
+};
+
 let campaignState = await loadSavedState();
 
 const mimeTypes = {
@@ -81,18 +96,20 @@ async function saveState() {
 async function handleState(req, res, url) {
   if (!campaignState) return sendJson(res, 404, { ok: false, error: "campaign_not_initialized" });
   const side = normalizeSide(url.searchParams.get("side"));
-  return sendJson(res, 200, { ok: true, state: filterStateForSide(campaignState, side) });
+  const fronts = normalizeFronts(side, url.searchParams.get("fronts"));
+  return sendJson(res, 200, { ok: true, state: filterStateForSide(campaignState, side, fronts) });
 }
 
 function handleEvents(req, res, url) {
   const side = normalizeSide(url.searchParams.get("side"));
+  const fronts = normalizeFronts(side, url.searchParams.get("fronts"));
   res.writeHead(200, {
     ...corsHeaders(),
     "Content-Type": "text/event-stream; charset=utf-8",
     "Cache-Control": "no-cache, no-transform",
     Connection: "keep-alive",
   });
-  const client = { res, side };
+  const client = { res, side, fronts };
   clients.add(client);
   sendEvent(client);
   req.on("close", () => clients.delete(client));
@@ -112,6 +129,7 @@ async function handleAction(req, res) {
   if (!campaignState) return sendJson(res, 409, { ok: false, error: "campaign_not_initialized" });
   const body = await readJson(req);
   const side = normalizeSide(body.side);
+  const fronts = normalizeFronts(side, body.fronts);
   const payload = body.payload || {};
 
   switch (body.type) {
@@ -125,7 +143,7 @@ async function handleAction(req, res) {
       break;
     case "updateArmy":
       campaignState.armies = campaignState.armies.map((army) => (
-        army.id === payload.id && army.side === side ? { ...army, ...(payload.patch || {}) } : army
+        army.id === payload.id && isControlledArmy(army, side, fronts) ? { ...army, ...(payload.patch || {}) } : army
       ));
       break;
     case "setUnitRows":
@@ -138,13 +156,13 @@ async function handleAction(req, res) {
       campaignState.battleLog = [];
       break;
     case "submitBattleRequest":
-      createBattleRequest(payload.battleForm || {}, side);
+      createBattleRequest(payload.battleForm || {}, side, fronts);
       break;
     case "confirmBattleRequest":
-      confirmBattleRequest(payload.id, side);
+      confirmBattleRequest(payload.id, side, fronts);
       break;
     case "rejectBattleRequest":
-      rejectBattleRequest(payload.id, side);
+      rejectBattleRequest(payload.id, side, fronts);
       break;
     case "reset":
       campaignState = normalizeState(payload.state);
@@ -162,13 +180,15 @@ async function handleAction(req, res) {
   return sendJson(res, 200, { ok: true });
 }
 
-function createBattleRequest(battleForm, side) {
+function createBattleRequest(battleForm, side, fronts) {
   const attacker = campaignState.armies.find((army) => army.id === battleForm.attacker);
   const defender = campaignState.armies.find((army) => army.id === battleForm.defender);
   const province = campaignState.provinces.find((item) => item.id === battleForm.province);
   if (!attacker || !defender || !province) return;
+  if (![attacker, defender].some((army) => isControlledArmy(army, side, fronts))) return;
 
   const targetSide = [attacker.side, defender.side].find((armySide) => armySide !== side) || oppositeSide(side);
+  const targetArmy = [attacker, defender].find((army) => army.side === targetSide);
   const crisisRules = getCampaignCrisisRules(campaignState.turn || 1);
 
   campaignState.battleRequests = [{
@@ -176,15 +196,19 @@ function createBattleRequest(battleForm, side) {
     status: "pending",
     createdAt: new Date().toISOString(),
     createdBySide: side,
+    createdByFronts: fronts,
     targetSide,
+    targetFront: targetArmy ? getArmyFront(targetArmy) : null,
     turn: campaignState.turn || 1,
     provinceId: province.id,
     provinceName: province.name,
     attacker: attacker.id,
     attackerSide: attacker.side,
+    attackerFront: getArmyFront(attacker),
     attackerName: attacker.name,
     defender: defender.id,
     defenderSide: defender.side,
+    defenderFront: getArmyFront(defender),
     defenderName: defender.name,
     winner: battleForm.winner,
     losses: battleForm.losses,
@@ -195,9 +219,9 @@ function createBattleRequest(battleForm, side) {
   }, ...(campaignState.battleRequests || []).filter((request) => request.status === "pending")];
 }
 
-function confirmBattleRequest(id, side) {
+function confirmBattleRequest(id, side, fronts) {
   const request = (campaignState.battleRequests || []).find((item) => item.id === id && item.status === "pending");
-  if (!request || request.targetSide !== side) return;
+  if (!request || !canHandleBattleRequest(request, side, fronts)) return;
   addBattleOnServer({
     province: request.provinceId,
     attacker: request.attacker,
@@ -211,9 +235,9 @@ function confirmBattleRequest(id, side) {
   campaignState.battleRequests = (campaignState.battleRequests || []).filter((item) => item.id !== id);
 }
 
-function rejectBattleRequest(id, side) {
+function rejectBattleRequest(id, side, fronts) {
   const request = (campaignState.battleRequests || []).find((item) => item.id === id && item.status === "pending");
-  if (!request || request.targetSide !== side) return;
+  if (!request || !canHandleBattleRequest(request, side, fronts)) return;
   campaignState.battleRequests = (campaignState.battleRequests || []).map((item) => (
     item.id === id ? { ...item, status: "rejected", rejectedBySide: side, rejectedAt: new Date().toISOString() } : item
   )).filter((item) => item.status === "pending");
@@ -272,20 +296,21 @@ function addBattleOnServer(battleForm, side, confirmedBySide = null) {
   });
 }
 
-function filterStateForSide(state, side) {
-  const ownProvinceIds = state.armies.filter((army) => army.side === side).map((army) => army.province);
+function filterStateForSide(state, side, fronts = normalizeFronts(side)) {
+  const ownProvinceIds = state.armies.filter((army) => isControlledArmy(army, side, fronts)).map((army) => army.province);
   const reconProvinceIds = new Set(ownProvinceIds);
   ownProvinceIds.forEach((provinceId) => getNeighbors(provinceId, state.links).forEach((neighborId) => reconProvinceIds.add(neighborId)));
 
   return {
     ...state,
     armies: state.armies
-      .filter((army) => army.side === side || reconProvinceIds.has(army.province))
+      .filter((army) => isControlledArmy(army, side, fronts) || reconProvinceIds.has(army.province))
       .map((army) => {
-        if (army.side === side) return army;
+        if (isControlledArmy(army, side, fronts)) return { ...army, front: getArmyFront(army) };
         return {
           id: army.id,
           side: army.side,
+          front: getArmyFront(army),
           province: army.province,
           name: "Контакт",
           strength: null,
@@ -293,17 +318,19 @@ function filterStateForSide(state, side) {
         };
       }),
     battleRequests: state.battleRequests
-      .filter((request) => request.status === "pending" && (request.createdBySide === side || request.targetSide === side))
-      .map((request) => sanitizeBattleRequestForSide(request, side)),
+      .filter((request) => request.status === "pending" && canSeeBattleRequest(request, side, fronts))
+      .map((request) => sanitizeBattleRequestForSide(request, side, fronts)),
     unitRows: state.unitRows.filter((row) => row.side === side),
     playerSide: side,
     serverFiltered: true,
   };
 }
 
-function sanitizeBattleRequestForSide(request, side) {
+function sanitizeBattleRequestForSide(request, side, fronts) {
   const labelArmy = (armySide, armyId, armyName) => {
-    if (armySide === side) return `${armyId} · ${armyName}`;
+    const armyFront = armyId === request.attacker ? request.attackerFront : request.defenderFront;
+    if (armySide === side && fronts.includes(armyFront)) return `${armyId} · ${armyName}`;
+    if (armySide === side) return "Союзный фронт";
     return "Контакт противника";
   };
   return {
@@ -312,6 +339,7 @@ function sanitizeBattleRequestForSide(request, side) {
     createdAt: request.createdAt,
     createdBySide: request.createdBySide,
     targetSide: request.targetSide,
+    targetFront: request.targetFront,
     turn: request.turn,
     provinceName: request.provinceName,
     attackerLabel: labelArmy(request.attackerSide, request.attacker, request.attackerName),
@@ -322,8 +350,8 @@ function sanitizeBattleRequestForSide(request, side) {
     encircled: request.encircled,
     blitzAdvance: request.blitzAdvance,
     crisisPhase: request.crisisPhase,
-    canConfirm: request.targetSide === side,
-    isOwnRequest: request.createdBySide === side,
+    canConfirm: canHandleBattleRequest(request, side, fronts),
+    isOwnRequest: request.createdBySide === side && (request.createdByFronts || frontSlots[side] || []).some((front) => fronts.includes(front)),
   };
 }
 
@@ -331,7 +359,7 @@ function normalizeState(state = {}) {
   return {
     provinces: Array.isArray(state.provinces) ? state.provinces : [],
     links: Array.isArray(state.links) ? state.links : [],
-    armies: Array.isArray(state.armies) ? state.armies : [],
+    armies: Array.isArray(state.armies) ? state.armies.map((army) => ({ ...army, front: getArmyFront(army) })) : [],
     battleLog: Array.isArray(state.battleLog) ? state.battleLog : [],
     battleRequests: Array.isArray(state.battleRequests) ? state.battleRequests : [],
     unitRows: Array.isArray(state.unitRows) ? state.unitRows : [],
@@ -389,7 +417,7 @@ function sendEvent(client) {
     client.res.write("event: waiting\ndata: {}\n\n");
     return;
   }
-  client.res.write(`data: ${JSON.stringify({ state: filterStateForSide(campaignState, client.side) })}\n\n`);
+  client.res.write(`data: ${JSON.stringify({ state: filterStateForSide(campaignState, client.side, client.fronts) })}\n\n`);
 }
 
 function sendJson(res, status, data) {
@@ -407,6 +435,32 @@ function corsHeaders() {
 
 function normalizeSide(side) {
   return side === "ussr" ? "ussr" : "germany";
+}
+
+function normalizeFronts(side, frontsInput) {
+  const available = frontSlots[side] || [];
+  const requested = Array.isArray(frontsInput)
+    ? frontsInput
+    : String(frontsInput || "").split(",").map((front) => front.trim()).filter(Boolean);
+  const selected = requested.filter((front) => available.includes(front));
+  return selected.length > 0 ? selected : available;
+}
+
+function getArmyFront(army) {
+  return army.front || armyFrontById[army.id] || `${army.side}_unassigned`;
+}
+
+function isControlledArmy(army, side, fronts) {
+  return army.side === side && fronts.includes(getArmyFront(army));
+}
+
+function canHandleBattleRequest(request, side, fronts) {
+  return request.targetSide === side && (!request.targetFront || fronts.includes(request.targetFront));
+}
+
+function canSeeBattleRequest(request, side, fronts) {
+  const createdHere = request.createdBySide === side && (request.createdByFronts || frontSlots[side] || []).some((front) => fronts.includes(front));
+  return createdHere || canHandleBattleRequest(request, side, fronts);
 }
 
 function serveStatic(pathname, res) {

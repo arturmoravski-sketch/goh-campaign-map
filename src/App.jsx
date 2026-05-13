@@ -113,14 +113,14 @@ const links = [
 ];
 
 const initialArmies = [
-  { id: "G1", name: "Группа Север", side: "germany", province: "east_prussia", strength: 2 },
-  { id: "G2", name: "Группа Центр", side: "germany", province: "brest", strength: 3 },
-  { id: "G3", name: "Группа Юг", side: "germany", province: "lviv", strength: 2 },
-  { id: "GR", name: "Резерв", side: "germany", province: "bialystok", strength: 1 },
-  { id: "S1", name: "Северный фронт", side: "ussr", province: "pskov", strength: 2 },
-  { id: "S2", name: "Западный фронт", side: "ussr", province: "minsk", strength: 3 },
-  { id: "S3", name: "Юго-Западный фронт", side: "ussr", province: "kyiv", strength: 2 },
-  { id: "SR", name: "Резерв Ставки", side: "ussr", province: "moscow", strength: 1 },
+  { id: "G1", name: "Группа Север", side: "germany", front: "germany_north", province: "east_prussia", strength: 2 },
+  { id: "G2", name: "Группа Центр", side: "germany", front: "germany_center", province: "brest", strength: 3 },
+  { id: "G3", name: "Группа Юг", side: "germany", front: "germany_south", province: "lviv", strength: 2 },
+  { id: "GR", name: "Резерв", side: "germany", front: "germany_reserve", province: "bialystok", strength: 1 },
+  { id: "S1", name: "Северный фронт", side: "ussr", front: "ussr_north", province: "pskov", strength: 2 },
+  { id: "S2", name: "Западный фронт", side: "ussr", front: "ussr_west", province: "minsk", strength: 3 },
+  { id: "S3", name: "Юго-Западный фронт", side: "ussr", front: "ussr_southwest", province: "kyiv", strength: 2 },
+  { id: "SR", name: "Резерв Ставки", side: "ussr", front: "ussr_stavka", province: "moscow", strength: 1 },
 ];
 
 const strengthLevels = [1, 2, 3, 4, 5];
@@ -136,6 +136,22 @@ const ownerConfig = {
 };
 
 const playerSides = ["germany", "ussr"];
+const frontSlots = {
+  germany: [
+    { id: "germany_north", label: "Север" },
+    { id: "germany_center", label: "Центр" },
+    { id: "germany_south", label: "Юг" },
+    { id: "germany_reserve", label: "Резерв" },
+  ],
+  ussr: [
+    { id: "ussr_north", label: "Северный" },
+    { id: "ussr_west", label: "Западный" },
+    { id: "ussr_southwest", label: "Юго-Западный" },
+    { id: "ussr_stavka", label: "Ставка" },
+  ],
+};
+const armyFrontById = Object.fromEntries(initialArmies.map((army) => [army.id, army.front]));
+const frontLabelById = Object.fromEntries(Object.values(frontSlots).flat().map((front) => [front.id, front.label]));
 
 const mapImageUrl = "/maps/eastern-front-1941.jpg";
 
@@ -214,6 +230,14 @@ function mergeCampaignProvinces(provinceList) {
 
 function calcBudget(strength) {
   return { 1: 3500, 2: 5000, 3: 7000, 4: 9000, 5: 11000 }[Number(strength)] || 3500;
+}
+
+function getFrontIdsForSide(side) {
+  return (frontSlots[side] || []).map((front) => front.id);
+}
+
+function getArmyFront(army) {
+  return army.front || armyFrontById[army.id] || `${army.side}_unassigned`;
 }
 
 function getModPresetForBudget(budget) {
@@ -399,6 +423,7 @@ export default function GOHCampaignMap() {
   const [provinces, setProvinces] = useState(campaignStartProvinces);
   const [armies, setArmies] = useState(initialArmies);
   const [playerSide, setPlayerSide] = useState("germany");
+  const [controlledFronts, setControlledFronts] = useState(getFrontIdsForSide("germany"));
   const [selectedProvinceId, setSelectedProvinceId] = useState("minsk");
   const [turn, setTurn] = useState(1);
   const [battleLog, setBattleLog] = useState([]);
@@ -414,13 +439,19 @@ export default function GOHCampaignMap() {
   const byId = useMemo(() => Object.fromEntries(provinces.map((p) => [p.id, p])), [provinces]);
   const selectedProvince = byId[selectedProvinceId] || provinces[0];
   const provinceArmies = armies.filter((a) => a.province === selectedProvince?.id);
-  const ownProvinceIds = useMemo(() => armies.filter((army) => army.side === playerSide).map((army) => army.province), [armies, playerSide]);
+  const controlledFrontSet = useMemo(() => new Set(controlledFronts), [controlledFronts]);
+  const controlledArmies = useMemo(
+    () => armies.filter((army) => army.side === playerSide && controlledFrontSet.has(getArmyFront(army))),
+    [armies, playerSide, controlledFrontSet],
+  );
+  const ownProvinceIds = useMemo(() => controlledArmies.map((army) => army.province), [controlledArmies]);
   const reconProvinceIds = useMemo(() => {
     const ids = new Set(ownProvinceIds);
     ownProvinceIds.forEach((id) => getNeighbors(id).forEach((neighborId) => ids.add(neighborId)));
     return ids;
   }, [ownProvinceIds]);
-  const visibleProvinceArmies = provinceArmies.filter((army) => army.side === playerSide);
+  const visibleProvinceArmies = provinceArmies.filter((army) => army.side === playerSide && controlledFrontSet.has(getArmyFront(army)));
+  const alliedProvinceArmies = provinceArmies.filter((army) => army.side === playerSide && !controlledFrontSet.has(getArmyFront(army)));
   const selectedEnemyContacts = provinceArmies.filter((army) => army.side !== playerSide && reconProvinceIds.has(selectedProvince?.id));
   const connectedIds = useMemo(() => getNeighbors(selectedProvinceId), [selectedProvinceId]);
   const victoryPoints = useMemo(() => calculateVictoryPoints(provinces), [provinces]);
@@ -464,8 +495,8 @@ export default function GOHCampaignMap() {
     : sovietBaseBudget;
   const germanRecommendedBudget = germanBaseBudget;
   const visibleBattleArmies = useMemo(
-    () => armies.filter((army) => army.side === playerSide || reconProvinceIds.has(army.province)),
-    [armies, playerSide, reconProvinceIds],
+    () => armies.filter((army) => (army.side === playerSide && controlledFrontSet.has(getArmyFront(army))) || reconProvinceIds.has(army.province)),
+    [armies, playerSide, controlledFrontSet, reconProvinceIds],
   );
 
   useEffect(() => {
@@ -474,7 +505,8 @@ export default function GOHCampaignMap() {
 
   useEffect(() => {
     if (!networkEnabled) return undefined;
-    const events = new EventSource(`/api/events?side=${playerSide}`);
+    const frontQuery = encodeURIComponent(controlledFronts.join(","));
+    const events = new EventSource(`/api/events?side=${playerSide}&fronts=${frontQuery}`);
     events.onopen = () => setNetworkStatus(`Подключено: ${ownerConfig[playerSide].label}`);
     events.onerror = () => setNetworkStatus("Связь с сервером потеряна. Проверь npm run network.");
     events.onmessage = (event) => {
@@ -482,7 +514,7 @@ export default function GOHCampaignMap() {
       if (data.state) applyNetworkState(data.state);
     };
     return () => events.close();
-  }, [networkEnabled, playerSide]);
+  }, [networkEnabled, playerSide, controlledFronts]);
 
   function getCampaignSnapshot() {
     return { provinces, links, armies, battleLog, battleRequests, turn, unitRows };
@@ -490,7 +522,7 @@ export default function GOHCampaignMap() {
 
   function applyNetworkState(state) {
     setProvinces(Array.isArray(state.provinces) ? mergeCampaignProvinces(state.provinces) : campaignStartProvinces);
-    setArmies(Array.isArray(state.armies) ? state.armies : []);
+    setArmies(Array.isArray(state.armies) ? state.armies.map((army) => ({ ...army, front: getArmyFront(army) })) : []);
     setBattleLog(Array.isArray(state.battleLog) ? state.battleLog : []);
     setBattleRequests(Array.isArray(state.battleRequests) ? state.battleRequests : []);
     setUnitRows(Array.isArray(state.unitRows) ? state.unitRows.map((row) => ({ doctrine: commonDoctrine, resource: "ЛС", command: 0, ...row })) : []);
@@ -506,7 +538,7 @@ export default function GOHCampaignMap() {
         body: JSON.stringify({ state: getCampaignSnapshot() }),
       });
       if (!initResponse.ok) throw new Error("init_failed");
-      const stateResponse = await fetch(`/api/state?side=${playerSide}`);
+      const stateResponse = await fetch(`/api/state?side=${playerSide}&fronts=${encodeURIComponent(controlledFronts.join(","))}`);
       if (!stateResponse.ok) throw new Error("state_failed");
       const data = await stateResponse.json();
       if (data.state) applyNetworkState(data.state);
@@ -529,7 +561,7 @@ export default function GOHCampaignMap() {
       const response = await fetch("/api/action", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type, side: playerSide, payload }),
+        body: JSON.stringify({ type, side: playerSide, fronts: controlledFronts, payload }),
       });
       if (!response.ok) throw new Error(type);
       return true;
@@ -551,11 +583,14 @@ export default function GOHCampaignMap() {
 
   function selectPlayerSide(side) {
     setPlayerSide(side);
+    const nextFronts = getFrontIdsForSide(side);
+    setControlledFronts(nextFronts);
     selectUnitSide(side);
-    const nextOwnProvinceIds = armies.filter((army) => army.side === side).map((army) => army.province);
+    const nextFrontSet = new Set(nextFronts);
+    const nextOwnProvinceIds = armies.filter((army) => army.side === side && nextFrontSet.has(getArmyFront(army))).map((army) => army.province);
     const nextReconProvinceIds = new Set(nextOwnProvinceIds);
     nextOwnProvinceIds.forEach((id) => getNeighbors(id).forEach((neighborId) => nextReconProvinceIds.add(neighborId)));
-    const ownArmy = armies.find((army) => army.side === side);
+    const ownArmy = armies.find((army) => army.side === side && nextFrontSet.has(getArmyFront(army)));
     const contactArmy = armies.find((army) => army.side !== side && nextReconProvinceIds.has(army.province));
     setBattleForm((prev) => ({
       ...prev,
@@ -563,6 +598,18 @@ export default function GOHCampaignMap() {
       defender: contactArmy?.id || prev.defender,
       winner: side,
     }));
+  }
+
+  function toggleControlledFront(frontId) {
+    setControlledFronts((prev) => {
+      if (prev.includes(frontId) && prev.length > 1) return prev.filter((id) => id !== frontId);
+      if (prev.includes(frontId)) return prev;
+      return [...prev, frontId];
+    });
+  }
+
+  function selectAllFrontsForCurrentSide() {
+    setControlledFronts(getFrontIdsForSide(playerSide));
   }
 
   function formatArmyOption(army) {
@@ -779,6 +826,26 @@ export default function GOHCampaignMap() {
                   </AppButton>
                 ))}
               </div>
+              <div className="rounded-2xl border bg-white p-2">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <span className="text-xs font-bold uppercase text-stone-500">Фронты под управлением</span>
+                  <button type="button" className="text-xs font-semibold text-stone-600 underline-offset-4 hover:underline" onClick={selectAllFrontsForCurrentSide}>
+                    Взять все
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {(frontSlots[playerSide] || []).map((front) => (
+                    <button
+                      key={front.id}
+                      type="button"
+                      onClick={() => toggleControlledFront(front.id)}
+                      className={`rounded-xl border px-2 py-1.5 text-sm font-semibold transition ${controlledFronts.includes(front.id) ? "border-stone-900 bg-stone-900 text-white" : "border-stone-300 bg-white text-stone-700 hover:bg-stone-100"}`}
+                    >
+                      {front.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <div className="grid grid-cols-[1fr_auto] gap-2">
                 <div className={`rounded-2xl border px-3 py-2 text-sm ${networkEnabled ? "border-emerald-300 bg-emerald-50 text-emerald-900" : "border-stone-300 bg-white text-stone-600"}`}>
                   {networkStatus}
@@ -818,10 +885,12 @@ export default function GOHCampaignMap() {
                 {provinces.map((p) => {
                   const isSelected = p.id === selectedProvinceId;
                   const armiesHere = armies.filter((a) => a.province === p.id);
-                  const ownArmiesHere = armiesHere.filter((army) => army.side === playerSide);
+                  const ownArmiesHere = armiesHere.filter((army) => army.side === playerSide && controlledFrontSet.has(getArmyFront(army)));
+                  const alliedArmiesHere = armiesHere.filter((army) => army.side === playerSide && !controlledFrontSet.has(getArmyFront(army)));
                   const enemyContactCount = armiesHere.filter((army) => army.side !== playerSide).length;
                   const showEnemyContact = enemyContactCount > 0 && reconProvinceIds.has(p.id);
-                  const isCompact = !isSelected && ownArmiesHere.length === 0 && !showEnemyContact && p.points === 0 && p.type.includes("переход");
+                  const showAlliedContact = alliedArmiesHere.length > 0;
+                  const isCompact = !isSelected && ownArmiesHere.length === 0 && !showEnemyContact && !showAlliedContact && p.points === 0 && p.type.includes("переход");
                   const cfg = ownerConfig[p.owner] || ownerConfig.neutral;
                   const markerSizeClass = isCompact ? "min-w-[46px] max-w-[84px] rounded-md px-1 py-0.5" : "min-w-[72px] max-w-[118px] rounded-lg px-1.5 py-1";
                   const dotSizeClass = isCompact ? "h-2 w-2" : "h-2.5 w-2.5";
@@ -847,6 +916,9 @@ export default function GOHCampaignMap() {
                         {showEnemyContact && (
                           <span className="rounded-full bg-amber-200 px-1.5 py-0.5 text-[9px] font-black text-amber-950">контакт</span>
                         )}
+                        {showAlliedContact && (
+                          <span className="rounded-full bg-sky-100 px-1.5 py-0.5 text-[9px] font-black text-sky-900">союзник</span>
+                        )}
                       </div>
                     </button>
                   );
@@ -856,6 +928,7 @@ export default function GOHCampaignMap() {
                   <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-full bg-red-700" /> СССР</span>
                   <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-full bg-zinc-800" /> Германия</span>
                   <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-full bg-amber-300" /> контакт</span>
+                  <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-full bg-sky-200" /> союзник</span>
                   <span className="flex items-center gap-1"><Icon>⚑</Icon> число = сила группы</span>
                 </div>
               </div>
@@ -895,10 +968,19 @@ export default function GOHCampaignMap() {
                     <div className="mt-1 text-xs">Состав и сила скрыты туманом войны. Точный отряд раскрывается только после боя или разведки.</div>
                   </div>
                 )}
+                {alliedProvinceArmies.length > 0 && (
+                  <div className="rounded-2xl border border-sky-200 bg-sky-50 p-3 text-sm text-sky-950">
+                    <b>Союзный фронт</b>
+                    <div className="mt-1 text-xs">Армия вашей стороны находится здесь, но этот фронт сейчас не выбран для управления.</div>
+                  </div>
+                )}
                 {visibleProvinceArmies.map((a) => (
                   <div key={a.id} className="space-y-2 rounded-2xl border bg-white p-3">
                     <div className="flex items-center justify-between">
-                      <b className={a.side === "germany" ? "text-zinc-900" : "text-red-800"}>{a.id} — {a.name}</b>
+                      <div>
+                        <b className={a.side === "germany" ? "text-zinc-900" : "text-red-800"}>{a.id} — {a.name}</b>
+                        <div className="text-xs text-stone-500">{frontLabelById[getArmyFront(a)] || "Фронт"}</div>
+                      </div>
                       <span className="text-sm">Сила: {a.strength}</span>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
