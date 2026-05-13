@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   commonDoctrine,
   getCatalogUnits,
@@ -406,6 +406,9 @@ export default function GOHCampaignMap() {
   const [unitCalculator, setUnitCalculator] = useState({ side: "germany", strength: 3, budget: 7000, doctrine: "Универсальная", unitId: "g-u-riflemen" });
   const [unitRows, setUnitRows] = useState(initialUnitRows);
   const [message, setMessage] = useState("");
+  const [networkEnabled, setNetworkEnabled] = useState(false);
+  const [networkStatus, setNetworkStatus] = useState("Сеть выключена.");
+  const networkEnabledRef = useRef(false);
 
   const byId = useMemo(() => Object.fromEntries(provinces.map((p) => [p.id, p])), [provinces]);
   const selectedProvince = byId[selectedProvinceId] || provinces[0];
@@ -464,11 +467,83 @@ export default function GOHCampaignMap() {
     [armies, playerSide, reconProvinceIds],
   );
 
+  useEffect(() => {
+    networkEnabledRef.current = networkEnabled;
+  }, [networkEnabled]);
+
+  useEffect(() => {
+    if (!networkEnabled) return undefined;
+    const events = new EventSource(`/api/events?side=${playerSide}`);
+    events.onopen = () => setNetworkStatus(`Подключено: ${ownerConfig[playerSide].label}`);
+    events.onerror = () => setNetworkStatus("Связь с сервером потеряна. Проверь npm run network.");
+    events.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.state) applyNetworkState(data.state);
+    };
+    return () => events.close();
+  }, [networkEnabled, playerSide]);
+
+  function getCampaignSnapshot() {
+    return { provinces, links, armies, battleLog, turn, unitRows };
+  }
+
+  function applyNetworkState(state) {
+    setProvinces(Array.isArray(state.provinces) ? mergeCampaignProvinces(state.provinces) : campaignStartProvinces);
+    setArmies(Array.isArray(state.armies) ? state.armies : []);
+    setBattleLog(Array.isArray(state.battleLog) ? state.battleLog : []);
+    setUnitRows(Array.isArray(state.unitRows) ? state.unitRows.map((row) => ({ doctrine: commonDoctrine, resource: "ЛС", command: 0, ...row })) : []);
+    setTurn(Number(state.turn) || 1);
+  }
+
+  async function connectNetwork() {
+    try {
+      setNetworkStatus("Подключаемся к серверу...");
+      const initResponse = await fetch("/api/init", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ state: getCampaignSnapshot() }),
+      });
+      if (!initResponse.ok) throw new Error("init_failed");
+      const stateResponse = await fetch(`/api/state?side=${playerSide}`);
+      if (!stateResponse.ok) throw new Error("state_failed");
+      const data = await stateResponse.json();
+      if (data.state) applyNetworkState(data.state);
+      setNetworkEnabled(true);
+      setNetworkStatus(`Подключено: ${ownerConfig[playerSide].label}`);
+    } catch (error) {
+      setNetworkEnabled(false);
+      setNetworkStatus("Сервер не найден. Запусти npm run build, затем npm run network.");
+    }
+  }
+
+  function disconnectNetwork() {
+    setNetworkEnabled(false);
+    setNetworkStatus("Сеть выключена.");
+  }
+
+  async function sendNetworkAction(type, payload = {}) {
+    if (!networkEnabledRef.current) return false;
+    try {
+      const response = await fetch("/api/action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type, side: playerSide, payload }),
+      });
+      if (!response.ok) throw new Error(type);
+      return true;
+    } catch (error) {
+      setNetworkStatus("Не удалось отправить действие на сервер.");
+      return false;
+    }
+  }
+
   function updateProvince(id, patch) {
+    sendNetworkAction("updateProvince", { id, patch });
     setProvinces((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p)));
   }
 
   function updateArmy(id, patch) {
+    sendNetworkAction("updateArmy", { id, patch });
     setArmies((prev) => prev.map((a) => (a.id === id ? { ...a, ...patch } : a)));
   }
 
@@ -494,7 +569,15 @@ export default function GOHCampaignMap() {
   }
 
   function updateUnitRow(id, patch) {
-    setUnitRows((prev) => prev.map((row) => (row.id === id ? { ...row, ...patch } : row)));
+    commitUnitRows((prev) => prev.map((row) => (row.id === id ? { ...row, ...patch } : row)));
+  }
+
+  function commitUnitRows(updater) {
+    setUnitRows((prev) => {
+      const next = updater(prev);
+      sendNetworkAction("setUnitRows", { unitRows: next.filter((row) => row.side === unitCalculator.side) });
+      return next;
+    });
   }
 
   function selectUnitSide(side) {
@@ -510,39 +593,49 @@ export default function GOHCampaignMap() {
 
   function addCatalogUnit() {
     if (!selectedCatalogUnit) return;
-    setUnitRows((prev) => [...prev, makeUnitRow(selectedCatalogUnit, `unit-${selectedCatalogUnit.id}-${Date.now()}`)]);
+    commitUnitRows((prev) => [...prev, makeUnitRow(selectedCatalogUnit, `unit-${selectedCatalogUnit.id}-${Date.now()}`)]);
   }
 
   function addUnitRow() {
-    setUnitRows((prev) => [
+    commitUnitRows((prev) => [
       ...prev,
       { id: `unit-${Date.now()}`, side: unitCalculator.side, doctrine: unitCalculator.doctrine, category: "Пехота", name: "", cost: 0, resource: "ЛС", command: 0, count: 1 },
     ]);
   }
 
   function removeUnitRow(id) {
-    setUnitRows((prev) => prev.filter((row) => row.id !== id));
+    commitUnitRows((prev) => prev.filter((row) => row.id !== id));
   }
 
   function clearUnitRowsForSide() {
-    setUnitRows((prev) => prev.filter((row) => row.side !== unitCalculator.side));
+    commitUnitRows((prev) => prev.filter((row) => row.side !== unitCalculator.side));
+  }
+
+  function nextTurn() {
+    setTurn((prev) => {
+      const next = prev + 1;
+      sendNetworkAction("setTurn", { turn: next });
+      return next;
+    });
   }
 
   function resetCampaign() {
-    setProvinces(campaignStartProvinces);
-    setArmies(initialArmies);
-    setBattleLog([]);
-    setUnitRows(initialUnitRows);
+    const resetState = { provinces: campaignStartProvinces, links, armies: initialArmies, battleLog: [], turn: 1, unitRows: initialUnitRows };
+    setProvinces(resetState.provinces);
+    setArmies(resetState.armies);
+    setBattleLog(resetState.battleLog);
+    setUnitRows(resetState.unitRows);
     setUnitCalculator({ side: "germany", strength: 3, budget: 7000, doctrine: "Универсальная", unitId: "g-u-riflemen" });
-    setTurn(1);
+    setTurn(resetState.turn);
     setSelectedProvinceId("minsk");
     setBattleForm({ province: "minsk", attacker: "G2", defender: "S2", winner: "germany", losses: "средние", note: "", encircled: false, blitzAdvance: false });
+    sendNetworkAction("reset", { state: resetState });
     setMessage("Кампания сброшена.");
   }
 
   function saveCampaign() {
     try {
-      const data = { provinces, armies, battleLog, turn, unitRows };
+      const data = getCampaignSnapshot();
       window.localStorage.setItem("goh_campaign_save_v02", JSON.stringify(data));
       setMessage("Кампания сохранена в браузере.");
     } catch (error) {
@@ -570,6 +663,13 @@ export default function GOHCampaignMap() {
   }
 
   function addBattle() {
+    if (networkEnabledRef.current) {
+      sendNetworkAction("addBattle", { battleForm });
+      setBattleForm((prev) => ({ ...prev, note: "", encircled: false, blitzAdvance: false }));
+      setMessage("Бой отправлен на сервер кампании.");
+      return;
+    }
+
     const attacker = armies.find((a) => a.id === battleForm.attacker);
     const defender = armies.find((a) => a.id === battleForm.defender);
     const province = byId[battleForm.province];
@@ -640,7 +740,7 @@ export default function GOHCampaignMap() {
             <p className="mt-1 text-stone-600">Карта кампании вне игры: двигайте армии, меняйте контроль провинций и записывайте результаты боёв.</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <AppButton onClick={() => setTurn((t) => t + 1)}>Ход {turn} →</AppButton>
+            <AppButton onClick={nextTurn}>Ход {turn} →</AppButton>
             <AppButton onClick={saveCampaign} variant="outline"><Icon>💾</Icon>Сохранить</AppButton>
             <AppButton onClick={loadCampaign} variant="outline">Загрузить</AppButton>
             <AppButton onClick={resetCampaign} variant="outline"><Icon>↩️</Icon>Сброс</AppButton>
@@ -653,16 +753,26 @@ export default function GOHCampaignMap() {
               <h2 className="font-bold">Сторона игрока</h2>
               <p className="text-sm text-stone-600">Туман войны скрывает точный состав противника. В соседних с вашими армиями провинциях видны только контакты.</p>
             </div>
-            <div className="grid grid-cols-2 gap-2 md:w-[360px]">
-              {playerSides.map((side) => (
-                <AppButton
-                  key={side}
-                  variant={playerSide === side ? "solid" : "outline"}
-                  onClick={() => selectPlayerSide(side)}
-                >
-                  {ownerConfig[side].label}
+            <div className="space-y-2 md:w-[390px]">
+              <div className="grid grid-cols-2 gap-2">
+                {playerSides.map((side) => (
+                  <AppButton
+                    key={side}
+                    variant={playerSide === side ? "solid" : "outline"}
+                    onClick={() => selectPlayerSide(side)}
+                  >
+                    {ownerConfig[side].label}
+                  </AppButton>
+                ))}
+              </div>
+              <div className="grid grid-cols-[1fr_auto] gap-2">
+                <div className={`rounded-2xl border px-3 py-2 text-sm ${networkEnabled ? "border-emerald-300 bg-emerald-50 text-emerald-900" : "border-stone-300 bg-white text-stone-600"}`}>
+                  {networkStatus}
+                </div>
+                <AppButton onClick={networkEnabled ? disconnectNetwork : connectNetwork} variant={networkEnabled ? "outline" : "solid"}>
+                  {networkEnabled ? "Отключить" : "Сеть"}
                 </AppButton>
-              ))}
+              </div>
             </div>
           </PanelBody>
         </Panel>
@@ -1041,7 +1151,15 @@ export default function GOHCampaignMap() {
           <PanelBody>
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-xl font-bold">Журнал боёв</h2>
-              <AppButton variant="outline" onClick={() => setBattleLog([])}><Icon>🗑️</Icon>Очистить</AppButton>
+              <AppButton
+                variant="outline"
+                onClick={() => {
+                  sendNetworkAction("clearBattleLog");
+                  setBattleLog([]);
+                }}
+              >
+                <Icon>🗑️</Icon>Очистить
+              </AppButton>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
