@@ -12,28 +12,100 @@ msgstr ""
 "Language: ru\n"
 
 msgctxt "mp/presets/spec/goh_2500"
-msgid "GOH 2500 MP"
-msgstr "GOH 2500 ЛС"
+msgid "2500 MP"
+msgstr "2500 ЛС"
 
 msgctxt "mp/presets/spec/goh_3500"
-msgid "GOH 3500 MP"
-msgstr "GOH 3500 ЛС"
+msgid "3500 MP"
+msgstr "3500 ЛС"
 
 msgctxt "mp/presets/spec/goh_5000"
-msgid "GOH 5000 MP"
-msgstr "GOH 5000 ЛС"
+msgid "5000 MP"
+msgstr "5000 ЛС"
 
 msgctxt "mp/presets/spec/goh_7000"
-msgid "GOH 7000 MP"
-msgstr "GOH 7000 ЛС"
+msgid "7000 MP"
+msgstr "7000 ЛС"
 
 msgctxt "mp/presets/spec/goh_9000"
-msgid "GOH 9000 MP"
-msgstr "GOH 9000 ЛС"
+msgid "9000 MP"
+msgstr "9000 ЛС"
 
 msgctxt "mp/presets/spec/goh_11000"
-msgid "GOH 11000 MP"
-msgstr "GOH 11000 ЛС"
+msgid "11000 MP"
+msgstr "11000 ЛС"
+
+msgctxt "mp/presets/spec/goh_2500_team2"
+msgid "2500 MP / 2 slots"
+msgstr "2500 ЛС / 2 слота"
+
+msgctxt "mp/presets/spec/goh_3500_team2"
+msgid "3500 MP / 2 slots"
+msgstr "3500 ЛС / 2 слота"
+
+msgctxt "mp/presets/spec/goh_5000_team2"
+msgid "5000 MP / 2 slots"
+msgstr "5000 ЛС / 2 слота"
+
+msgctxt "mp/presets/spec/goh_7000_team2"
+msgid "7000 MP / 2 slots"
+msgstr "7000 ЛС / 2 слота"
+
+msgctxt "mp/presets/spec/goh_9000_team2"
+msgid "9000 MP / 2 slots"
+msgstr "9000 ЛС / 2 слота"
+
+msgctxt "mp/presets/spec/goh_11000_team2"
+msgid "11000 MP / 2 slots"
+msgstr "11000 ЛС / 2 слота"
+
+msgctxt "mp/presets/spec/goh_2500_team3"
+msgid "2500 MP / 3 slots"
+msgstr "2500 ЛС / 3 слота"
+
+msgctxt "mp/presets/spec/goh_3500_team3"
+msgid "3500 MP / 3 slots"
+msgstr "3500 ЛС / 3 слота"
+
+msgctxt "mp/presets/spec/goh_5000_team3"
+msgid "5000 MP / 3 slots"
+msgstr "5000 ЛС / 3 слота"
+
+msgctxt "mp/presets/spec/goh_7000_team3"
+msgid "7000 MP / 3 slots"
+msgstr "7000 ЛС / 3 слота"
+
+msgctxt "mp/presets/spec/goh_9000_team3"
+msgid "9000 MP / 3 slots"
+msgstr "9000 ЛС / 3 слота"
+
+msgctxt "mp/presets/spec/goh_11000_team3"
+msgid "11000 MP / 3 slots"
+msgstr "11000 ЛС / 3 слота"
+
+msgctxt "mp/presets/spec/goh_2500_team4"
+msgid "2500 MP / 4 slots"
+msgstr "2500 ЛС / 4 слота"
+
+msgctxt "mp/presets/spec/goh_3500_team4"
+msgid "3500 MP / 4 slots"
+msgstr "3500 ЛС / 4 слота"
+
+msgctxt "mp/presets/spec/goh_5000_team4"
+msgid "5000 MP / 4 slots"
+msgstr "5000 ЛС / 4 слота"
+
+msgctxt "mp/presets/spec/goh_7000_team4"
+msgid "7000 MP / 4 slots"
+msgstr "7000 ЛС / 4 слота"
+
+msgctxt "mp/presets/spec/goh_9000_team4"
+msgid "9000 MP / 4 slots"
+msgstr "9000 ЛС / 4 слота"
+
+msgctxt "mp/presets/spec/goh_11000_team4"
+msgid "11000 MP / 4 slots"
+msgstr "11000 ЛС / 4 слота"
 
 # GOH Campaign Mode air support names
 msgctxt "desc/squad/doctrine_bf109_early_campaign_allround"

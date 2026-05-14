@@ -1,4 +1,4 @@
-﻿; == MID WAR STANDARD RESOURCES ==
+; == MID WAR STANDARD RESOURCES ==
 
 (include "global_parameters/frontlines/timers_frontlines.inc")
 
@@ -8,7 +8,7 @@
 			{unitset
 				{value "mid^conquestonly|doctrineonly"}
 			}
-			{commandPoints "*=1000"}
+			{commandPoints "*=%cp_a"}
 			(include "global_parameters/frontlines/unitlimits_attacker.inc")
 			{chargeFactors
 				("timers_attacker")
@@ -19,7 +19,7 @@
 			{unitset
 				{value "mid|frontlines^conquestonly|doctrineonly"}
 			}
-			{commandPoints "*=1000"}
+			{commandPoints "*=%cp_b"}
 			(include "global_parameters/frontlines/unitlimits_defender.inc")
 			{chargeFactors
 				("timers_defender")
@@ -44,7 +44,7 @@
 			{unitset
 				{value "mid^conquestonly|doctrineonly"}
 			}
-			{commandPoints "*=1000"}
+			{commandPoints "*=%cp_a"}
 			(include "global_parameters/frontlines/unitlimits_attacker.inc")
 			{chargeFactors
 				("timers_attacker")
@@ -55,7 +55,7 @@
 			{unitset
 				{value "mid|frontlines^conquestonly|doctrineonly"}
 			}
-			{commandPoints "*=1000"}
+			{commandPoints "*=%cp_b"}
 			(include "global_parameters/frontlines/unitlimits_defender.inc")
 			{chargeFactors
 				("timers_defender")
@@ -77,7 +77,7 @@
 			{unitset
 				{value "mid^conquestonly|doctrineonly"}
 			}
-			{commandPoints "*=1000"}
+			{commandPoints "*=%cp_a"}
 			{unitLimits ""}
 			{chargeFactors
 				{value "*=0"}
@@ -88,7 +88,7 @@
 			{unitset
 				{value "mid|frontlines^conquestonly|doctrineonly"}
 			}
-			{commandPoints "*=1000"}
+			{commandPoints "*=%cp_b"}
 			{unitLimits ""}
 			{chargeFactors
 				{value "*=0"}
@@ -157,6 +157,136 @@
 		{specMode "goh_11000"}
 		{apply "only_roster_mid"}
 		("test_mid"			start_a(11000) finish_a(11000) reinforcement_a(0) start_b(11000) finish_b(11000) doctrine_a(2000) doctrine_b(2000) cp_a(1000) cp_b(1000))
+	}
+; // GOH campaign team-total presets
+; // Use these on maps where one player controls 2 side slots
+	{"c:mid_goh_2500_team2"
+		{gameMode "custom"}
+		{unitMode "mid"}
+		{specMode "goh_2500_team2"}
+		{apply "only_roster_mid"}
+		("test_mid"			start_a(1250) finish_a(1250) reinforcement_a(0) start_b(1250) finish_b(1250) doctrine_a(1000) doctrine_b(1000) cp_a(500) cp_b(500))
+	}
+	{"c:mid_goh_3500_team2"
+		{gameMode "custom"}
+		{unitMode "mid"}
+		{specMode "goh_3500_team2"}
+		{apply "only_roster_mid"}
+		("test_mid"			start_a(1750) finish_a(1750) reinforcement_a(0) start_b(1750) finish_b(1750) doctrine_a(1000) doctrine_b(1000) cp_a(500) cp_b(500))
+	}
+	{"c:mid_goh_5000_team2"
+		{gameMode "custom"}
+		{unitMode "mid"}
+		{specMode "goh_5000_team2"}
+		{apply "only_roster_mid"}
+		("test_mid"			start_a(2500) finish_a(2500) reinforcement_a(0) start_b(2500) finish_b(2500) doctrine_a(1000) doctrine_b(1000) cp_a(500) cp_b(500))
+	}
+	{"c:mid_goh_7000_team2"
+		{gameMode "custom"}
+		{unitMode "mid"}
+		{specMode "goh_7000_team2"}
+		{apply "only_roster_mid"}
+		("test_mid"			start_a(3500) finish_a(3500) reinforcement_a(0) start_b(3500) finish_b(3500) doctrine_a(1000) doctrine_b(1000) cp_a(500) cp_b(500))
+	}
+	{"c:mid_goh_9000_team2"
+		{gameMode "custom"}
+		{unitMode "mid"}
+		{specMode "goh_9000_team2"}
+		{apply "only_roster_mid"}
+		("test_mid"			start_a(4500) finish_a(4500) reinforcement_a(0) start_b(4500) finish_b(4500) doctrine_a(1000) doctrine_b(1000) cp_a(500) cp_b(500))
+	}
+	{"c:mid_goh_11000_team2"
+		{gameMode "custom"}
+		{unitMode "mid"}
+		{specMode "goh_11000_team2"}
+		{apply "only_roster_mid"}
+		("test_mid"			start_a(5500) finish_a(5500) reinforcement_a(0) start_b(5500) finish_b(5500) doctrine_a(1000) doctrine_b(1000) cp_a(500) cp_b(500))
+	}
+; // Use these on maps where one player controls 3 side slots
+	{"c:mid_goh_2500_team3"
+		{gameMode "custom"}
+		{unitMode "mid"}
+		{specMode "goh_2500_team3"}
+		{apply "only_roster_mid"}
+		("test_mid"			start_a(833) finish_a(833) reinforcement_a(0) start_b(833) finish_b(833) doctrine_a(667) doctrine_b(667) cp_a(333) cp_b(333))
+	}
+	{"c:mid_goh_3500_team3"
+		{gameMode "custom"}
+		{unitMode "mid"}
+		{specMode "goh_3500_team3"}
+		{apply "only_roster_mid"}
+		("test_mid"			start_a(1167) finish_a(1167) reinforcement_a(0) start_b(1167) finish_b(1167) doctrine_a(667) doctrine_b(667) cp_a(333) cp_b(333))
+	}
+	{"c:mid_goh_5000_team3"
+		{gameMode "custom"}
+		{unitMode "mid"}
+		{specMode "goh_5000_team3"}
+		{apply "only_roster_mid"}
+		("test_mid"			start_a(1667) finish_a(1667) reinforcement_a(0) start_b(1667) finish_b(1667) doctrine_a(667) doctrine_b(667) cp_a(333) cp_b(333))
+	}
+	{"c:mid_goh_7000_team3"
+		{gameMode "custom"}
+		{unitMode "mid"}
+		{specMode "goh_7000_team3"}
+		{apply "only_roster_mid"}
+		("test_mid"			start_a(2333) finish_a(2333) reinforcement_a(0) start_b(2333) finish_b(2333) doctrine_a(667) doctrine_b(667) cp_a(333) cp_b(333))
+	}
+	{"c:mid_goh_9000_team3"
+		{gameMode "custom"}
+		{unitMode "mid"}
+		{specMode "goh_9000_team3"}
+		{apply "only_roster_mid"}
+		("test_mid"			start_a(3000) finish_a(3000) reinforcement_a(0) start_b(3000) finish_b(3000) doctrine_a(667) doctrine_b(667) cp_a(333) cp_b(333))
+	}
+	{"c:mid_goh_11000_team3"
+		{gameMode "custom"}
+		{unitMode "mid"}
+		{specMode "goh_11000_team3"}
+		{apply "only_roster_mid"}
+		("test_mid"			start_a(3667) finish_a(3667) reinforcement_a(0) start_b(3667) finish_b(3667) doctrine_a(667) doctrine_b(667) cp_a(333) cp_b(333))
+	}
+; // Use these on maps where one player controls 4 side slots
+	{"c:mid_goh_2500_team4"
+		{gameMode "custom"}
+		{unitMode "mid"}
+		{specMode "goh_2500_team4"}
+		{apply "only_roster_mid"}
+		("test_mid"			start_a(625) finish_a(625) reinforcement_a(0) start_b(625) finish_b(625) doctrine_a(500) doctrine_b(500) cp_a(250) cp_b(250))
+	}
+	{"c:mid_goh_3500_team4"
+		{gameMode "custom"}
+		{unitMode "mid"}
+		{specMode "goh_3500_team4"}
+		{apply "only_roster_mid"}
+		("test_mid"			start_a(875) finish_a(875) reinforcement_a(0) start_b(875) finish_b(875) doctrine_a(500) doctrine_b(500) cp_a(250) cp_b(250))
+	}
+	{"c:mid_goh_5000_team4"
+		{gameMode "custom"}
+		{unitMode "mid"}
+		{specMode "goh_5000_team4"}
+		{apply "only_roster_mid"}
+		("test_mid"			start_a(1250) finish_a(1250) reinforcement_a(0) start_b(1250) finish_b(1250) doctrine_a(500) doctrine_b(500) cp_a(250) cp_b(250))
+	}
+	{"c:mid_goh_7000_team4"
+		{gameMode "custom"}
+		{unitMode "mid"}
+		{specMode "goh_7000_team4"}
+		{apply "only_roster_mid"}
+		("test_mid"			start_a(1750) finish_a(1750) reinforcement_a(0) start_b(1750) finish_b(1750) doctrine_a(500) doctrine_b(500) cp_a(250) cp_b(250))
+	}
+	{"c:mid_goh_9000_team4"
+		{gameMode "custom"}
+		{unitMode "mid"}
+		{specMode "goh_9000_team4"}
+		{apply "only_roster_mid"}
+		("test_mid"			start_a(2250) finish_a(2250) reinforcement_a(0) start_b(2250) finish_b(2250) doctrine_a(500) doctrine_b(500) cp_a(250) cp_b(250))
+	}
+	{"c:mid_goh_11000_team4"
+		{gameMode "custom"}
+		{unitMode "mid"}
+		{specMode "goh_11000_team4"}
+		{apply "only_roster_mid"}
+		("test_mid"			start_a(2750) finish_a(2750) reinforcement_a(0) start_b(2750) finish_b(2750) doctrine_a(500) doctrine_b(500) cp_a(250) cp_b(250))
 	}
 ;------------------------------------------------------------------------------------------------------------
 

@@ -1,4 +1,4 @@
-﻿(define "bot_state"
+(define "bot_state"
 	{unitset
 		{value "conquest"}
 		{available "all infantry sniper armor light medium heavy artillery airborne mechanized"}
@@ -24,7 +24,7 @@
 			{buttons "inf1 inf2 empl vehicles tanks"}
 		}
 	}
-	{balancingFactorBonus {cp 1000} {mpStart 1.0} {mpFinish 1.0} {payback %payback}} ;// overridden in dynamic campaign difficulty files
+	{balancingFactorBonus {cp %cp} {mpStart 1.0} {mpFinish 1.0} {payback %payback}} ;// overridden in dynamic campaign difficulty files
 )
 
 {game
@@ -75,16 +75,16 @@
 			}
 			{bots
 				{easy
-					("bot_state" cp(1.00) mpStart(11000) mpFinish(11000) payback(0.0))
+					("bot_state" cp(1000) mpStart(11000) mpFinish(11000) payback(0.0))
 				}
 				{normal
-					("bot_state" cp(1.00) mpStart(11000) mpFinish(11000) payback(0.0))
+					("bot_state" cp(1000) mpStart(11000) mpFinish(11000) payback(0.0))
 				}
 				{hard
-					("bot_state" cp(1.00) mpStart(11000) mpFinish(11000) payback(0.0))
+					("bot_state" cp(1000) mpStart(11000) mpFinish(11000) payback(0.0))
 				}
 				{heroic
-					("bot_state" cp(1.00) mpStart(11000) mpFinish(11000) payback(0.0))
+					("bot_state" cp(1000) mpStart(11000) mpFinish(11000) payback(0.0))
 				}
 			}
 		}
@@ -100,16 +100,16 @@
 			}
 			{bots
 				{easy
-					("bot_state" cp(1.00) mpStart(2500) mpFinish(2500) payback(0.0))
+					("bot_state" cp(1000) mpStart(2500) mpFinish(2500) payback(0.0))
 				}
 				{normal
-					("bot_state" cp(1.00) mpStart(2500) mpFinish(2500) payback(0.0))
+					("bot_state" cp(1000) mpStart(2500) mpFinish(2500) payback(0.0))
 				}
 				{hard
-					("bot_state" cp(1.00) mpStart(2500) mpFinish(2500) payback(0.0))
+					("bot_state" cp(1000) mpStart(2500) mpFinish(2500) payback(0.0))
 				}
 				{heroic
-					("bot_state" cp(1.00) mpStart(2500) mpFinish(2500) payback(0.0))
+					("bot_state" cp(1000) mpStart(2500) mpFinish(2500) payback(0.0))
 				}
 			}
 		}
@@ -125,16 +125,16 @@
 			}
 			{bots
 				{easy
-					("bot_state" cp(1.00) mpStart(3500) mpFinish(3500) payback(0.0))
+					("bot_state" cp(1000) mpStart(3500) mpFinish(3500) payback(0.0))
 				}
 				{normal
-					("bot_state" cp(1.00) mpStart(3500) mpFinish(3500) payback(0.0))
+					("bot_state" cp(1000) mpStart(3500) mpFinish(3500) payback(0.0))
 				}
 				{hard
-					("bot_state" cp(1.00) mpStart(3500) mpFinish(3500) payback(0.0))
+					("bot_state" cp(1000) mpStart(3500) mpFinish(3500) payback(0.0))
 				}
 				{heroic
-					("bot_state" cp(1.00) mpStart(3500) mpFinish(3500) payback(0.0))
+					("bot_state" cp(1000) mpStart(3500) mpFinish(3500) payback(0.0))
 				}
 			}
 		}
@@ -150,16 +150,16 @@
 			}
 			{bots
 				{easy
-					("bot_state" cp(1.00) mpStart(5000) mpFinish(5000) payback(0.0))
+					("bot_state" cp(1000) mpStart(5000) mpFinish(5000) payback(0.0))
 				}
 				{normal
-					("bot_state" cp(1.00) mpStart(5000) mpFinish(5000) payback(0.0))
+					("bot_state" cp(1000) mpStart(5000) mpFinish(5000) payback(0.0))
 				}
 				{hard
-					("bot_state" cp(1.00) mpStart(5000) mpFinish(5000) payback(0.0))
+					("bot_state" cp(1000) mpStart(5000) mpFinish(5000) payback(0.0))
 				}
 				{heroic
-					("bot_state" cp(1.00) mpStart(5000) mpFinish(5000) payback(0.0))
+					("bot_state" cp(1000) mpStart(5000) mpFinish(5000) payback(0.0))
 				}
 			}
 		}
@@ -175,16 +175,16 @@
 			}
 			{bots
 				{easy
-					("bot_state" cp(1.00) mpStart(7000) mpFinish(7000) payback(0.0))
+					("bot_state" cp(1000) mpStart(7000) mpFinish(7000) payback(0.0))
 				}
 				{normal
-					("bot_state" cp(1.00) mpStart(7000) mpFinish(7000) payback(0.0))
+					("bot_state" cp(1000) mpStart(7000) mpFinish(7000) payback(0.0))
 				}
 				{hard
-					("bot_state" cp(1.00) mpStart(7000) mpFinish(7000) payback(0.0))
+					("bot_state" cp(1000) mpStart(7000) mpFinish(7000) payback(0.0))
 				}
 				{heroic
-					("bot_state" cp(1.00) mpStart(7000) mpFinish(7000) payback(0.0))
+					("bot_state" cp(1000) mpStart(7000) mpFinish(7000) payback(0.0))
 				}
 			}
 		}
@@ -200,16 +200,16 @@
 			}
 			{bots
 				{easy
-					("bot_state" cp(1.00) mpStart(9000) mpFinish(9000) payback(0.0))
+					("bot_state" cp(1000) mpStart(9000) mpFinish(9000) payback(0.0))
 				}
 				{normal
-					("bot_state" cp(1.00) mpStart(9000) mpFinish(9000) payback(0.0))
+					("bot_state" cp(1000) mpStart(9000) mpFinish(9000) payback(0.0))
 				}
 				{hard
-					("bot_state" cp(1.00) mpStart(9000) mpFinish(9000) payback(0.0))
+					("bot_state" cp(1000) mpStart(9000) mpFinish(9000) payback(0.0))
 				}
 				{heroic
-					("bot_state" cp(1.00) mpStart(9000) mpFinish(9000) payback(0.0))
+					("bot_state" cp(1000) mpStart(9000) mpFinish(9000) payback(0.0))
 				}
 			}
 		}
@@ -225,16 +225,470 @@
 			}
 			{bots
 				{easy
-					("bot_state" cp(1.00) mpStart(11000) mpFinish(11000) payback(0.0))
+					("bot_state" cp(1000) mpStart(11000) mpFinish(11000) payback(0.0))
 				}
 				{normal
-					("bot_state" cp(1.00) mpStart(11000) mpFinish(11000) payback(0.0))
+					("bot_state" cp(1000) mpStart(11000) mpFinish(11000) payback(0.0))
 				}
 				{hard
-					("bot_state" cp(1.00) mpStart(11000) mpFinish(11000) payback(0.0))
+					("bot_state" cp(1000) mpStart(11000) mpFinish(11000) payback(0.0))
 				}
 				{heroic
-					("bot_state" cp(1.00) mpStart(11000) mpFinish(11000) payback(0.0))
+					("bot_state" cp(1000) mpStart(11000) mpFinish(11000) payback(0.0))
+				}
+			}
+		}
+		; // GOH campaign team-total slot presets
+		; // Use these on maps where one player controls 2 side slots
+		{"d:campaign_goh_2500_team2"
+			{gameMode "campaign"}
+			{unitMode "all"}
+			{specMode "goh_2500_team2"}
+			{common
+				{unitset
+					{value "conquest"}
+					{available "all infantry sniper armor light medium heavy artillery airborne mechanized"}
+				}
+			}
+			{bots
+				{easy
+					("bot_state" cp(500) mpStart(1250) mpFinish(1250) payback(0.0))
+				}
+				{normal
+					("bot_state" cp(500) mpStart(1250) mpFinish(1250) payback(0.0))
+				}
+				{hard
+					("bot_state" cp(500) mpStart(1250) mpFinish(1250) payback(0.0))
+				}
+				{heroic
+					("bot_state" cp(500) mpStart(1250) mpFinish(1250) payback(0.0))
+				}
+			}
+		}
+		{"d:campaign_goh_3500_team2"
+			{gameMode "campaign"}
+			{unitMode "all"}
+			{specMode "goh_3500_team2"}
+			{common
+				{unitset
+					{value "conquest"}
+					{available "all infantry sniper armor light medium heavy artillery airborne mechanized"}
+				}
+			}
+			{bots
+				{easy
+					("bot_state" cp(500) mpStart(1750) mpFinish(1750) payback(0.0))
+				}
+				{normal
+					("bot_state" cp(500) mpStart(1750) mpFinish(1750) payback(0.0))
+				}
+				{hard
+					("bot_state" cp(500) mpStart(1750) mpFinish(1750) payback(0.0))
+				}
+				{heroic
+					("bot_state" cp(500) mpStart(1750) mpFinish(1750) payback(0.0))
+				}
+			}
+		}
+		{"d:campaign_goh_5000_team2"
+			{gameMode "campaign"}
+			{unitMode "all"}
+			{specMode "goh_5000_team2"}
+			{common
+				{unitset
+					{value "conquest"}
+					{available "all infantry sniper armor light medium heavy artillery airborne mechanized"}
+				}
+			}
+			{bots
+				{easy
+					("bot_state" cp(500) mpStart(2500) mpFinish(2500) payback(0.0))
+				}
+				{normal
+					("bot_state" cp(500) mpStart(2500) mpFinish(2500) payback(0.0))
+				}
+				{hard
+					("bot_state" cp(500) mpStart(2500) mpFinish(2500) payback(0.0))
+				}
+				{heroic
+					("bot_state" cp(500) mpStart(2500) mpFinish(2500) payback(0.0))
+				}
+			}
+		}
+		{"d:campaign_goh_7000_team2"
+			{gameMode "campaign"}
+			{unitMode "all"}
+			{specMode "goh_7000_team2"}
+			{common
+				{unitset
+					{value "conquest"}
+					{available "all infantry sniper armor light medium heavy artillery airborne mechanized"}
+				}
+			}
+			{bots
+				{easy
+					("bot_state" cp(500) mpStart(3500) mpFinish(3500) payback(0.0))
+				}
+				{normal
+					("bot_state" cp(500) mpStart(3500) mpFinish(3500) payback(0.0))
+				}
+				{hard
+					("bot_state" cp(500) mpStart(3500) mpFinish(3500) payback(0.0))
+				}
+				{heroic
+					("bot_state" cp(500) mpStart(3500) mpFinish(3500) payback(0.0))
+				}
+			}
+		}
+		{"d:campaign_goh_9000_team2"
+			{gameMode "campaign"}
+			{unitMode "all"}
+			{specMode "goh_9000_team2"}
+			{common
+				{unitset
+					{value "conquest"}
+					{available "all infantry sniper armor light medium heavy artillery airborne mechanized"}
+				}
+			}
+			{bots
+				{easy
+					("bot_state" cp(500) mpStart(4500) mpFinish(4500) payback(0.0))
+				}
+				{normal
+					("bot_state" cp(500) mpStart(4500) mpFinish(4500) payback(0.0))
+				}
+				{hard
+					("bot_state" cp(500) mpStart(4500) mpFinish(4500) payback(0.0))
+				}
+				{heroic
+					("bot_state" cp(500) mpStart(4500) mpFinish(4500) payback(0.0))
+				}
+			}
+		}
+		{"d:campaign_goh_11000_team2"
+			{gameMode "campaign"}
+			{unitMode "all"}
+			{specMode "goh_11000_team2"}
+			{common
+				{unitset
+					{value "conquest"}
+					{available "all infantry sniper armor light medium heavy artillery airborne mechanized"}
+				}
+			}
+			{bots
+				{easy
+					("bot_state" cp(500) mpStart(5500) mpFinish(5500) payback(0.0))
+				}
+				{normal
+					("bot_state" cp(500) mpStart(5500) mpFinish(5500) payback(0.0))
+				}
+				{hard
+					("bot_state" cp(500) mpStart(5500) mpFinish(5500) payback(0.0))
+				}
+				{heroic
+					("bot_state" cp(500) mpStart(5500) mpFinish(5500) payback(0.0))
+				}
+			}
+		}
+		; // Use these on maps where one player controls 3 side slots
+		{"d:campaign_goh_2500_team3"
+			{gameMode "campaign"}
+			{unitMode "all"}
+			{specMode "goh_2500_team3"}
+			{common
+				{unitset
+					{value "conquest"}
+					{available "all infantry sniper armor light medium heavy artillery airborne mechanized"}
+				}
+			}
+			{bots
+				{easy
+					("bot_state" cp(333) mpStart(833) mpFinish(833) payback(0.0))
+				}
+				{normal
+					("bot_state" cp(333) mpStart(833) mpFinish(833) payback(0.0))
+				}
+				{hard
+					("bot_state" cp(333) mpStart(833) mpFinish(833) payback(0.0))
+				}
+				{heroic
+					("bot_state" cp(333) mpStart(833) mpFinish(833) payback(0.0))
+				}
+			}
+		}
+		{"d:campaign_goh_3500_team3"
+			{gameMode "campaign"}
+			{unitMode "all"}
+			{specMode "goh_3500_team3"}
+			{common
+				{unitset
+					{value "conquest"}
+					{available "all infantry sniper armor light medium heavy artillery airborne mechanized"}
+				}
+			}
+			{bots
+				{easy
+					("bot_state" cp(333) mpStart(1167) mpFinish(1167) payback(0.0))
+				}
+				{normal
+					("bot_state" cp(333) mpStart(1167) mpFinish(1167) payback(0.0))
+				}
+				{hard
+					("bot_state" cp(333) mpStart(1167) mpFinish(1167) payback(0.0))
+				}
+				{heroic
+					("bot_state" cp(333) mpStart(1167) mpFinish(1167) payback(0.0))
+				}
+			}
+		}
+		{"d:campaign_goh_5000_team3"
+			{gameMode "campaign"}
+			{unitMode "all"}
+			{specMode "goh_5000_team3"}
+			{common
+				{unitset
+					{value "conquest"}
+					{available "all infantry sniper armor light medium heavy artillery airborne mechanized"}
+				}
+			}
+			{bots
+				{easy
+					("bot_state" cp(333) mpStart(1667) mpFinish(1667) payback(0.0))
+				}
+				{normal
+					("bot_state" cp(333) mpStart(1667) mpFinish(1667) payback(0.0))
+				}
+				{hard
+					("bot_state" cp(333) mpStart(1667) mpFinish(1667) payback(0.0))
+				}
+				{heroic
+					("bot_state" cp(333) mpStart(1667) mpFinish(1667) payback(0.0))
+				}
+			}
+		}
+		{"d:campaign_goh_7000_team3"
+			{gameMode "campaign"}
+			{unitMode "all"}
+			{specMode "goh_7000_team3"}
+			{common
+				{unitset
+					{value "conquest"}
+					{available "all infantry sniper armor light medium heavy artillery airborne mechanized"}
+				}
+			}
+			{bots
+				{easy
+					("bot_state" cp(333) mpStart(2333) mpFinish(2333) payback(0.0))
+				}
+				{normal
+					("bot_state" cp(333) mpStart(2333) mpFinish(2333) payback(0.0))
+				}
+				{hard
+					("bot_state" cp(333) mpStart(2333) mpFinish(2333) payback(0.0))
+				}
+				{heroic
+					("bot_state" cp(333) mpStart(2333) mpFinish(2333) payback(0.0))
+				}
+			}
+		}
+		{"d:campaign_goh_9000_team3"
+			{gameMode "campaign"}
+			{unitMode "all"}
+			{specMode "goh_9000_team3"}
+			{common
+				{unitset
+					{value "conquest"}
+					{available "all infantry sniper armor light medium heavy artillery airborne mechanized"}
+				}
+			}
+			{bots
+				{easy
+					("bot_state" cp(333) mpStart(3000) mpFinish(3000) payback(0.0))
+				}
+				{normal
+					("bot_state" cp(333) mpStart(3000) mpFinish(3000) payback(0.0))
+				}
+				{hard
+					("bot_state" cp(333) mpStart(3000) mpFinish(3000) payback(0.0))
+				}
+				{heroic
+					("bot_state" cp(333) mpStart(3000) mpFinish(3000) payback(0.0))
+				}
+			}
+		}
+		{"d:campaign_goh_11000_team3"
+			{gameMode "campaign"}
+			{unitMode "all"}
+			{specMode "goh_11000_team3"}
+			{common
+				{unitset
+					{value "conquest"}
+					{available "all infantry sniper armor light medium heavy artillery airborne mechanized"}
+				}
+			}
+			{bots
+				{easy
+					("bot_state" cp(333) mpStart(3667) mpFinish(3667) payback(0.0))
+				}
+				{normal
+					("bot_state" cp(333) mpStart(3667) mpFinish(3667) payback(0.0))
+				}
+				{hard
+					("bot_state" cp(333) mpStart(3667) mpFinish(3667) payback(0.0))
+				}
+				{heroic
+					("bot_state" cp(333) mpStart(3667) mpFinish(3667) payback(0.0))
+				}
+			}
+		}
+		; // Use these on maps where one player controls 4 side slots
+		{"d:campaign_goh_2500_team4"
+			{gameMode "campaign"}
+			{unitMode "all"}
+			{specMode "goh_2500_team4"}
+			{common
+				{unitset
+					{value "conquest"}
+					{available "all infantry sniper armor light medium heavy artillery airborne mechanized"}
+				}
+			}
+			{bots
+				{easy
+					("bot_state" cp(250) mpStart(625) mpFinish(625) payback(0.0))
+				}
+				{normal
+					("bot_state" cp(250) mpStart(625) mpFinish(625) payback(0.0))
+				}
+				{hard
+					("bot_state" cp(250) mpStart(625) mpFinish(625) payback(0.0))
+				}
+				{heroic
+					("bot_state" cp(250) mpStart(625) mpFinish(625) payback(0.0))
+				}
+			}
+		}
+		{"d:campaign_goh_3500_team4"
+			{gameMode "campaign"}
+			{unitMode "all"}
+			{specMode "goh_3500_team4"}
+			{common
+				{unitset
+					{value "conquest"}
+					{available "all infantry sniper armor light medium heavy artillery airborne mechanized"}
+				}
+			}
+			{bots
+				{easy
+					("bot_state" cp(250) mpStart(875) mpFinish(875) payback(0.0))
+				}
+				{normal
+					("bot_state" cp(250) mpStart(875) mpFinish(875) payback(0.0))
+				}
+				{hard
+					("bot_state" cp(250) mpStart(875) mpFinish(875) payback(0.0))
+				}
+				{heroic
+					("bot_state" cp(250) mpStart(875) mpFinish(875) payback(0.0))
+				}
+			}
+		}
+		{"d:campaign_goh_5000_team4"
+			{gameMode "campaign"}
+			{unitMode "all"}
+			{specMode "goh_5000_team4"}
+			{common
+				{unitset
+					{value "conquest"}
+					{available "all infantry sniper armor light medium heavy artillery airborne mechanized"}
+				}
+			}
+			{bots
+				{easy
+					("bot_state" cp(250) mpStart(1250) mpFinish(1250) payback(0.0))
+				}
+				{normal
+					("bot_state" cp(250) mpStart(1250) mpFinish(1250) payback(0.0))
+				}
+				{hard
+					("bot_state" cp(250) mpStart(1250) mpFinish(1250) payback(0.0))
+				}
+				{heroic
+					("bot_state" cp(250) mpStart(1250) mpFinish(1250) payback(0.0))
+				}
+			}
+		}
+		{"d:campaign_goh_7000_team4"
+			{gameMode "campaign"}
+			{unitMode "all"}
+			{specMode "goh_7000_team4"}
+			{common
+				{unitset
+					{value "conquest"}
+					{available "all infantry sniper armor light medium heavy artillery airborne mechanized"}
+				}
+			}
+			{bots
+				{easy
+					("bot_state" cp(250) mpStart(1750) mpFinish(1750) payback(0.0))
+				}
+				{normal
+					("bot_state" cp(250) mpStart(1750) mpFinish(1750) payback(0.0))
+				}
+				{hard
+					("bot_state" cp(250) mpStart(1750) mpFinish(1750) payback(0.0))
+				}
+				{heroic
+					("bot_state" cp(250) mpStart(1750) mpFinish(1750) payback(0.0))
+				}
+			}
+		}
+		{"d:campaign_goh_9000_team4"
+			{gameMode "campaign"}
+			{unitMode "all"}
+			{specMode "goh_9000_team4"}
+			{common
+				{unitset
+					{value "conquest"}
+					{available "all infantry sniper armor light medium heavy artillery airborne mechanized"}
+				}
+			}
+			{bots
+				{easy
+					("bot_state" cp(250) mpStart(2250) mpFinish(2250) payback(0.0))
+				}
+				{normal
+					("bot_state" cp(250) mpStart(2250) mpFinish(2250) payback(0.0))
+				}
+				{hard
+					("bot_state" cp(250) mpStart(2250) mpFinish(2250) payback(0.0))
+				}
+				{heroic
+					("bot_state" cp(250) mpStart(2250) mpFinish(2250) payback(0.0))
+				}
+			}
+		}
+		{"d:campaign_goh_11000_team4"
+			{gameMode "campaign"}
+			{unitMode "all"}
+			{specMode "goh_11000_team4"}
+			{common
+				{unitset
+					{value "conquest"}
+					{available "all infantry sniper armor light medium heavy artillery airborne mechanized"}
+				}
+			}
+			{bots
+				{easy
+					("bot_state" cp(250) mpStart(2750) mpFinish(2750) payback(0.0))
+				}
+				{normal
+					("bot_state" cp(250) mpStart(2750) mpFinish(2750) payback(0.0))
+				}
+				{hard
+					("bot_state" cp(250) mpStart(2750) mpFinish(2750) payback(0.0))
+				}
+				{heroic
+					("bot_state" cp(250) mpStart(2750) mpFinish(2750) payback(0.0))
 				}
 			}
 		}

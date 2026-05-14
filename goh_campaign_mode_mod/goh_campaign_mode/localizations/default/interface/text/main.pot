@@ -13,27 +13,99 @@ msgstr ""
 "Language-Team: \n"
 
 msgctxt "mp/presets/spec/goh_2500"
-msgid "GOH 2500 MP"
+msgid "2500 MP"
 msgstr ""
 
 msgctxt "mp/presets/spec/goh_3500"
-msgid "GOH 3500 MP"
+msgid "3500 MP"
 msgstr ""
 
 msgctxt "mp/presets/spec/goh_5000"
-msgid "GOH 5000 MP"
+msgid "5000 MP"
 msgstr ""
 
 msgctxt "mp/presets/spec/goh_7000"
-msgid "GOH 7000 MP"
+msgid "7000 MP"
 msgstr ""
 
 msgctxt "mp/presets/spec/goh_9000"
-msgid "GOH 9000 MP"
+msgid "9000 MP"
 msgstr ""
 
 msgctxt "mp/presets/spec/goh_11000"
-msgid "GOH 11000 MP"
+msgid "11000 MP"
+msgstr ""
+
+msgctxt "mp/presets/spec/goh_2500_team2"
+msgid "2500 MP / 2 slots"
+msgstr ""
+
+msgctxt "mp/presets/spec/goh_3500_team2"
+msgid "3500 MP / 2 slots"
+msgstr ""
+
+msgctxt "mp/presets/spec/goh_5000_team2"
+msgid "5000 MP / 2 slots"
+msgstr ""
+
+msgctxt "mp/presets/spec/goh_7000_team2"
+msgid "7000 MP / 2 slots"
+msgstr ""
+
+msgctxt "mp/presets/spec/goh_9000_team2"
+msgid "9000 MP / 2 slots"
+msgstr ""
+
+msgctxt "mp/presets/spec/goh_11000_team2"
+msgid "11000 MP / 2 slots"
+msgstr ""
+
+msgctxt "mp/presets/spec/goh_2500_team3"
+msgid "2500 MP / 3 slots"
+msgstr ""
+
+msgctxt "mp/presets/spec/goh_3500_team3"
+msgid "3500 MP / 3 slots"
+msgstr ""
+
+msgctxt "mp/presets/spec/goh_5000_team3"
+msgid "5000 MP / 3 slots"
+msgstr ""
+
+msgctxt "mp/presets/spec/goh_7000_team3"
+msgid "7000 MP / 3 slots"
+msgstr ""
+
+msgctxt "mp/presets/spec/goh_9000_team3"
+msgid "9000 MP / 3 slots"
+msgstr ""
+
+msgctxt "mp/presets/spec/goh_11000_team3"
+msgid "11000 MP / 3 slots"
+msgstr ""
+
+msgctxt "mp/presets/spec/goh_2500_team4"
+msgid "2500 MP / 4 slots"
+msgstr ""
+
+msgctxt "mp/presets/spec/goh_3500_team4"
+msgid "3500 MP / 4 slots"
+msgstr ""
+
+msgctxt "mp/presets/spec/goh_5000_team4"
+msgid "5000 MP / 4 slots"
+msgstr ""
+
+msgctxt "mp/presets/spec/goh_7000_team4"
+msgid "7000 MP / 4 slots"
+msgstr ""
+
+msgctxt "mp/presets/spec/goh_9000_team4"
+msgid "9000 MP / 4 slots"
+msgstr ""
+
+msgctxt "mp/presets/spec/goh_11000_team4"
+msgid "11000 MP / 4 slots"
 msgstr ""
 
 # GOH Campaign Mode air support names
