@@ -402,7 +402,7 @@ function PanelBody({ children, className = "" }) {
   return <div className={`p-4 ${className}`}>{children}</div>;
 }
 
-function AppButton({ children, onClick, variant = "solid", className = "", type = "button" }) {
+function AppButton({ children, onClick, variant = "solid", className = "", type = "button", disabled = false }) {
   const variants = {
     solid: "bg-stone-900 text-white hover:bg-stone-800 border-stone-900",
     outline: "bg-white text-stone-900 hover:bg-stone-100 border-stone-300",
@@ -412,7 +412,8 @@ function AppButton({ children, onClick, variant = "solid", className = "", type 
     <button
       type={type}
       onClick={onClick}
-      className={`inline-flex items-center justify-center gap-2 rounded-2xl border px-3 py-2 text-sm font-semibold transition ${variants[variant] || variants.solid} ${className}`}
+      disabled={disabled}
+      className={`inline-flex items-center justify-center gap-2 rounded-2xl border px-3 py-2 text-sm font-semibold transition ${variants[variant] || variants.solid} ${disabled ? "cursor-not-allowed opacity-50" : ""} ${className}`}
     >
       {children}
     </button>
@@ -498,10 +499,52 @@ export default function GOHCampaignMap() {
     () => armies.filter((army) => (army.side === playerSide && controlledFrontSet.has(getArmyFront(army))) || reconProvinceIds.has(army.province)),
     [armies, playerSide, controlledFrontSet, reconProvinceIds],
   );
+  const battleProvince = byId[battleForm.province] || selectedProvince;
+  const battleNeighborIds = useMemo(() => getNeighbors(battleForm.province), [battleForm.province]);
+  const battleReachIds = useMemo(() => new Set([battleForm.province, ...battleNeighborIds]), [battleForm.province, battleNeighborIds]);
+  const battleAttackers = useMemo(
+    () => visibleBattleArmies.filter((army) => (
+      army.side === playerSide
+      && controlledFrontSet.has(getArmyFront(army))
+      && battleReachIds.has(army.province)
+    )),
+    [visibleBattleArmies, playerSide, controlledFrontSet, battleReachIds],
+  );
+  const battleDefenders = useMemo(
+    () => visibleBattleArmies.filter((army) => army.side !== playerSide && army.province === battleForm.province),
+    [visibleBattleArmies, playerSide, battleForm.province],
+  );
+  const battleAttackerIsValid = battleAttackers.some((army) => army.id === battleForm.attacker);
+  const battleDefenderIsValid = battleDefenders.some((army) => army.id === battleForm.defender);
+  const battleCanSubmit = Boolean(
+    battleProvince
+    && battleAttackerIsValid
+    && battleDefenderIsValid
+    && battleForm.attacker !== battleForm.defender,
+  );
+  const battleRouteText = useMemo(() => {
+    if (!battleAttackers.length) return "Нет своей армии в этой провинции или рядом с ней.";
+    if (!battleDefenders.length) return "В выбранной провинции нет видимого вражеского контакта.";
+    if (!battleAttackerIsValid || !battleDefenderIsValid) return "Выбери доступную армию и контакт для этой провинции.";
+    const attackerProvince = byId[battleAttacker?.province];
+    if (!attackerProvince || !battleProvince) return "Проверь направление атаки.";
+    if (attackerProvince.id === battleProvince.id) return `Бой в ${battleProvince.name}: армия уже в провинции.`;
+    return `Атака из ${attackerProvince.name} на ${battleProvince.name}.`;
+  }, [battleAttackers.length, battleDefenders.length, battleAttackerIsValid, battleDefenderIsValid, byId, battleAttacker, battleProvince]);
 
   useEffect(() => {
     networkEnabledRef.current = networkEnabled;
   }, [networkEnabled]);
+
+  useEffect(() => {
+    if (battleAttackers.some((army) => army.id === battleForm.attacker)) return;
+    setBattleForm((prev) => ({ ...prev, attacker: battleAttackers[0]?.id || "" }));
+  }, [battleAttackers, battleForm.attacker]);
+
+  useEffect(() => {
+    if (battleDefenders.some((army) => army.id === battleForm.defender)) return;
+    setBattleForm((prev) => ({ ...prev, defender: battleDefenders[0]?.id || "" }));
+  }, [battleDefenders, battleForm.defender]);
 
   useEffect(() => {
     if (!networkEnabled) return undefined;
@@ -613,8 +656,9 @@ export default function GOHCampaignMap() {
   }
 
   function formatArmyOption(army) {
-    if (army.side === playerSide) return `${army.id} · ${army.name}`;
-    return `Контакт · ${byId[army.province]?.name || "неизвестно"}`;
+    const provinceName = byId[army.province]?.name || "неизвестно";
+    if (army.side === playerSide) return `${army.id} · ${army.name} (${provinceName})`;
+    return `Контакт · ${provinceName}`;
   }
 
   function updateUnitRow(id, patch) {
@@ -714,6 +758,11 @@ export default function GOHCampaignMap() {
   }
 
   function addBattle() {
+    if (!battleCanSubmit) {
+      setMessage(`Нельзя создать бой: ${battleRouteText}`);
+      return;
+    }
+
     if (networkEnabledRef.current) {
       sendNetworkAction("submitBattleRequest", { battleForm });
       setBattleForm((prev) => ({ ...prev, note: "", encircled: false, blitzAdvance: false }));
@@ -1003,11 +1052,13 @@ export default function GOHCampaignMap() {
                   <select className="col-span-2 rounded-xl border px-2 py-2 text-sm" value={battleForm.province} onChange={(e) => setBattleForm({ ...battleForm, province: e.target.value })}>
                     {provinces.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </select>
-                  <select className="rounded-xl border px-2 py-2 text-sm" value={battleForm.attacker} onChange={(e) => setBattleForm({ ...battleForm, attacker: e.target.value })}>
-                    {visibleBattleArmies.map((a) => <option key={a.id} value={a.id}>{formatArmyOption(a)}</option>)}
+                  <select className="rounded-xl border px-2 py-2 text-sm" value={battleAttackerIsValid ? battleForm.attacker : ""} onChange={(e) => setBattleForm({ ...battleForm, attacker: e.target.value })}>
+                    {battleAttackers.length === 0 && <option value="">Нет армии рядом</option>}
+                    {battleAttackers.map((a) => <option key={a.id} value={a.id}>{formatArmyOption(a)}</option>)}
                   </select>
-                  <select className="rounded-xl border px-2 py-2 text-sm" value={battleForm.defender} onChange={(e) => setBattleForm({ ...battleForm, defender: e.target.value })}>
-                    {visibleBattleArmies.map((a) => <option key={a.id} value={a.id}>{formatArmyOption(a)}</option>)}
+                  <select className="rounded-xl border px-2 py-2 text-sm" value={battleDefenderIsValid ? battleForm.defender : ""} onChange={(e) => setBattleForm({ ...battleForm, defender: e.target.value })}>
+                    {battleDefenders.length === 0 && <option value="">Нет контакта в провинции</option>}
+                    {battleDefenders.map((a) => <option key={a.id} value={a.id}>{formatArmyOption(a)}</option>)}
                   </select>
                   <select className="rounded-xl border px-2 py-2 text-sm" value={battleForm.winner} onChange={(e) => setBattleForm({ ...battleForm, winner: e.target.value })}>
                     <option value="germany">Победила Германия</option>
@@ -1037,7 +1088,10 @@ export default function GOHCampaignMap() {
                   </label>
                   <input className="col-span-2 rounded-xl border px-3 py-2 text-sm" placeholder="Примечание" value={battleForm.note} onChange={(e) => setBattleForm({ ...battleForm, note: e.target.value })} />
                 </div>
-                <AppButton onClick={addBattle} className="w-full"><Icon>＋</Icon>{networkEnabled ? "Отправить заявку" : "Записать бой"}</AppButton>
+                <div className={`rounded-2xl border px-3 py-2 text-xs ${battleCanSubmit ? "border-emerald-200 bg-emerald-50 text-emerald-950" : "border-amber-200 bg-amber-50 text-amber-950"}`}>
+                  {battleRouteText}
+                </div>
+                <AppButton onClick={addBattle} className="w-full" disabled={!battleCanSubmit}><Icon>＋</Icon>{networkEnabled ? "Отправить заявку" : "Записать бой"}</AppButton>
               </PanelBody>
             </Panel>
 

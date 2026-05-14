@@ -185,7 +185,11 @@ function createBattleRequest(battleForm, side, fronts) {
   const defender = campaignState.armies.find((army) => army.id === battleForm.defender);
   const province = campaignState.provinces.find((item) => item.id === battleForm.province);
   if (!attacker || !defender || !province) return;
-  if (![attacker, defender].some((army) => isControlledArmy(army, side, fronts))) return;
+  const battleReachIds = new Set([province.id, ...getNeighbors(province.id, campaignState.links)]);
+  if (!isControlledArmy(attacker, side, fronts)) return;
+  if (attacker.side !== side || defender.side === side) return;
+  if (!battleReachIds.has(attacker.province)) return;
+  if (defender.province !== province.id) return;
 
   const targetSide = [attacker.side, defender.side].find((armySide) => armySide !== side) || oppositeSide(side);
   const targetArmy = [attacker, defender].find((army) => army.side === targetSide);
