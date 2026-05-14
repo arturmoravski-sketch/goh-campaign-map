@@ -27,6 +27,101 @@
 
 
 ;===================================
+;   CAMPAIGN SHARED AIR SUPPORT
+;===================================
+; Added by GOH Campaign Mode: common air calls for all doctrines.
+; Use the campaign website crisis rules to limit early Soviet air power.
+
+; // Bf-109 Airstrike - campaign allround
+{"doctrine_bf109_early_campaign_allround"
+	("squad_vehicle_doctrine" side(ger) period(early) vehicle(bf109_f4) crew(pilot:1))
+	("doctrine_t1" cool(360) d(early_ger_allround) cost(10))
+	{action "airstrike:sc_50"}
+	{tags "limit3"}
+}
+
+; // Bf-110 Airstrike - campaign allround
+{"doctrine_bf110_early_campaign_allround"
+	("squad_vehicle_doctrine" side(ger) period(early) vehicle(bf110_e2) crew(pilot:2))
+	("doctrine_t3" cool(360) d(early_ger_allround) cost(30))
+	{action "airstrike:sc_250"}
+}
+
+; // Recon plane - campaign allround
+{"doctrine_fi156_early_campaign_allround"
+	("squad_vehicle_doctrine" side(ger) period(early) vehicle(fi156) crew(pilot:2))
+	("doctrine_t2" cool(360) d(early_ger_allround) cost(5))
+	{action "airstrike:reconnaissance_50"}
+}
+
+; // Bf-109 Airstrike - campaign defensive
+{"doctrine_bf109_early_campaign_defensive"
+	("squad_vehicle_doctrine" side(ger) period(early) vehicle(bf109_f4) crew(pilot:1))
+	("doctrine_t1" cool(360) d(early_ger_defensive) cost(10))
+	{action "airstrike:sc_50"}
+	{tags "limit3"}
+}
+
+; // Bf-110 Airstrike - campaign defensive
+{"doctrine_bf110_early_campaign_defensive"
+	("squad_vehicle_doctrine" side(ger) period(early) vehicle(bf110_e2) crew(pilot:2))
+	("doctrine_t3" cool(360) d(early_ger_defensive) cost(30))
+	{action "airstrike:sc_250"}
+}
+
+; // Recon plane - campaign defensive
+{"doctrine_fi156_early_campaign_defensive"
+	("squad_vehicle_doctrine" side(ger) period(early) vehicle(fi156) crew(pilot:2))
+	("doctrine_t2" cool(360) d(early_ger_defensive) cost(5))
+	{action "airstrike:reconnaissance_50"}
+}
+
+; // Recon plane - campaign irregular
+{"doctrine_fi156_early_campaign_irregular"
+	("squad_vehicle_doctrine" side(ger) period(early) vehicle(fi156) crew(pilot:2))
+	("doctrine_t2" cool(360) d(early_ger_irregular) cost(5))
+	{action "airstrike:reconnaissance_50"}
+}
+
+; // Bf-109 Airstrike - campaign offensive
+{"doctrine_bf109_early_campaign_offensive"
+	("squad_vehicle_doctrine" side(ger) period(early) vehicle(bf109_f4) crew(pilot:1))
+	("doctrine_t1" cool(360) d(early_ger_offensive) cost(10))
+	{action "airstrike:sc_50"}
+	{tags "limit3"}
+}
+
+; // Bf-110 Airstrike - campaign offensive
+{"doctrine_bf110_early_campaign_offensive"
+	("squad_vehicle_doctrine" side(ger) period(early) vehicle(bf110_e2) crew(pilot:2))
+	("doctrine_t3" cool(360) d(early_ger_offensive) cost(30))
+	{action "airstrike:sc_250"}
+}
+
+; // Recon plane - campaign offensive
+{"doctrine_fi156_early_campaign_offensive"
+	("squad_vehicle_doctrine" side(ger) period(early) vehicle(fi156) crew(pilot:2))
+	("doctrine_t2" cool(360) d(early_ger_offensive) cost(5))
+	{action "airstrike:reconnaissance_50"}
+}
+
+; // Bf-109 Airstrike - campaign support
+{"doctrine_bf109_early_campaign_support"
+	("squad_vehicle_doctrine" side(ger) period(early) vehicle(bf109_f4) crew(pilot:1))
+	("doctrine_t1" cool(360) d(early_ger_support) cost(10))
+	{action "airstrike:sc_50"}
+	{tags "limit3"}
+}
+
+; // Bf-110 Airstrike - campaign support
+{"doctrine_bf110_early_campaign_support"
+	("squad_vehicle_doctrine" side(ger) period(early) vehicle(bf110_e2) crew(pilot:2))
+	("doctrine_t3" cool(360) d(early_ger_support) cost(30))
+	{action "airstrike:sc_250"}
+}
+
+
+;===================================
 ;        ALL-ROUND DOCTRINE
 ;===================================
 

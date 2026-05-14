@@ -7,6 +7,9 @@ Frontlines, and campaign capture-the-flag/conquest, and removes
 purchase limits, field CP cost, initial call-in delays, and repeated call-in cooldowns
 from Battle Zones, Frontlines, and campaign capture-the-flag/conquest unit templates.
 Battle Zones, Frontlines, and capture-the-flag/conquest use an 11000 MP campaign ceiling.
+Adds shared campaign air support to every Germany and USSR doctrine in early, mid,
+and late periods: reconnaissance, light airstrike, and heavy airstrike.
+Use the campaign website crisis rules to restrict early Soviet air power during play.
 
 Install by copying this folder to:
 C:\Program Files (x86)\Steam\steamapps\common\Call to Arms - Gates of Hell\mods\goh_campaign_mode

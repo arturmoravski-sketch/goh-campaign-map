@@ -1,6 +1,6 @@
 {mod
 	{name "goh_campaign_mode"}
-	{desc "Local campaign presets: visible 2500/3500/5000/7000/9000/11000 manpower options, high command points, no per-unit purchase limits, and no call-in cooldowns."}
+	{desc "Local campaign presets: visible 2500/3500/5000/7000/9000/11000 manpower options, high command points, no per-unit purchase limits, no call-in cooldowns, and shared campaign air support for every doctrine."}
 	{minGameVersion "1.000"}
 	{maxGameVersion "1.999"}
 }

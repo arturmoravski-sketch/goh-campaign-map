@@ -27,6 +27,123 @@
 
 
 ;===================================
+;   CAMPAIGN SHARED AIR SUPPORT
+;===================================
+; Added by GOH Campaign Mode: common air calls for all doctrines.
+; Use the campaign website crisis rules to limit early Soviet air power.
+
+; // Yak Airstrike - campaign allround
+{"doctrine_yak1_mid_campaign_allround"
+	("squad_vehicle_doctrine" side(rus) period(mid) vehicle(yak1_ser69) crew(pilot:1))
+	("doctrine_t1" cool(360) d(mid_rus_allround) cost(10))
+	{action "airstrike:fab_50"}
+	{tags "limit3"}
+}
+
+; // IL2 Airstrike - campaign allround
+{"doctrine_il2_mid_campaign_allround"
+	("squad_vehicle_doctrine" side(rus) period(mid) vehicle(il2_mod42) crew(pilot:1))
+	("doctrine_t3" cool(360) d(mid_rus_allround) cost(30))
+	{action "airstrike:fab_250"}
+}
+
+; // Recon plane - campaign allround
+{"doctrine_po2_mid_campaign_allround"
+	("squad_vehicle_doctrine" side(rus) period(mid) vehicle(po2) crew(pilot:2))
+	("doctrine_t2" cool(360) d(mid_rus_allround) cost(5))
+	{action "airstrike:reconnaissance_50"}
+}
+
+; // Yak Airstrike - campaign defensive
+{"doctrine_yak1_mid_campaign_defensive"
+	("squad_vehicle_doctrine" side(rus) period(mid) vehicle(yak1_ser69) crew(pilot:1))
+	("doctrine_t1" cool(360) d(mid_rus_defensive) cost(10))
+	{action "airstrike:fab_50"}
+	{tags "limit3"}
+}
+
+; // IL2 Airstrike - campaign defensive
+{"doctrine_il2_mid_campaign_defensive"
+	("squad_vehicle_doctrine" side(rus) period(mid) vehicle(il2_mod42) crew(pilot:1))
+	("doctrine_t3" cool(360) d(mid_rus_defensive) cost(30))
+	{action "airstrike:fab_250"}
+}
+
+; // Recon plane - campaign defensive
+{"doctrine_po2_mid_campaign_defensive"
+	("squad_vehicle_doctrine" side(rus) period(mid) vehicle(po2) crew(pilot:2))
+	("doctrine_t2" cool(360) d(mid_rus_defensive) cost(5))
+	{action "airstrike:reconnaissance_50"}
+}
+
+; // Recon plane - campaign irregular
+{"doctrine_po2_mid_campaign_irregular"
+	("squad_vehicle_doctrine" side(rus) period(mid) vehicle(po2) crew(pilot:2))
+	("doctrine_t2" cool(360) d(mid_rus_irregular) cost(5))
+	{action "airstrike:reconnaissance_50"}
+}
+
+; // Yak Airstrike - campaign lendlease
+{"doctrine_yak1_mid_campaign_lendlease"
+	("squad_vehicle_doctrine" side(rus) period(mid) vehicle(yak1_ser69) crew(pilot:1))
+	("doctrine_t1" cool(360) d(mid_rus_lendlease) cost(10))
+	{action "airstrike:fab_50"}
+	{tags "limit3"}
+}
+
+; // IL2 Airstrike - campaign lendlease
+{"doctrine_il2_mid_campaign_lendlease"
+	("squad_vehicle_doctrine" side(rus) period(mid) vehicle(il2_mod42) crew(pilot:1))
+	("doctrine_t3" cool(360) d(mid_rus_lendlease) cost(30))
+	{action "airstrike:fab_250"}
+}
+
+; // Recon plane - campaign lendlease
+{"doctrine_po2_mid_campaign_lendlease"
+	("squad_vehicle_doctrine" side(rus) period(mid) vehicle(po2) crew(pilot:2))
+	("doctrine_t2" cool(360) d(mid_rus_lendlease) cost(5))
+	{action "airstrike:reconnaissance_50"}
+}
+
+; // Yak Airstrike - campaign offensive
+{"doctrine_yak1_mid_campaign_offensive"
+	("squad_vehicle_doctrine" side(rus) period(mid) vehicle(yak1_ser69) crew(pilot:1))
+	("doctrine_t1" cool(360) d(mid_rus_offensive) cost(10))
+	{action "airstrike:fab_50"}
+	{tags "limit3"}
+}
+
+; // IL2 Airstrike - campaign offensive
+{"doctrine_il2_mid_campaign_offensive"
+	("squad_vehicle_doctrine" side(rus) period(mid) vehicle(il2_mod42) crew(pilot:1))
+	("doctrine_t3" cool(360) d(mid_rus_offensive) cost(30))
+	{action "airstrike:fab_250"}
+}
+
+; // Recon plane - campaign offensive
+{"doctrine_po2_mid_campaign_offensive"
+	("squad_vehicle_doctrine" side(rus) period(mid) vehicle(po2) crew(pilot:2))
+	("doctrine_t2" cool(360) d(mid_rus_offensive) cost(5))
+	{action "airstrike:reconnaissance_50"}
+}
+
+; // Yak Airstrike - campaign support
+{"doctrine_yak1_mid_campaign_support"
+	("squad_vehicle_doctrine" side(rus) period(mid) vehicle(yak1_ser69) crew(pilot:1))
+	("doctrine_t1" cool(360) d(mid_rus_support) cost(10))
+	{action "airstrike:fab_50"}
+	{tags "limit3"}
+}
+
+; // IL2 Airstrike - campaign support
+{"doctrine_il2_mid_campaign_support"
+	("squad_vehicle_doctrine" side(rus) period(mid) vehicle(il2_mod42) crew(pilot:1))
+	("doctrine_t3" cool(360) d(mid_rus_support) cost(30))
+	{action "airstrike:fab_250"}
+}
+
+
+;===================================
 ;       ALL-ROUND DOCTRINE
 ;===================================
 
