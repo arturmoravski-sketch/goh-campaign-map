@@ -35,3 +35,317 @@ msgstr ""
 msgctxt "mp/presets/spec/goh_11000"
 msgid "GOH 11000 MP"
 msgstr ""
+
+# GOH Campaign Mode air support names
+msgctxt "desc/squad/doctrine_bf109_early_campaign_allround"
+msgid "<c(B29557)>( I )</c> Bf-109 50kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_bf109_early_campaign_defensive"
+msgid "<c(B29557)>( I )</c> Bf-109 50kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_bf109_early_campaign_offensive"
+msgid "<c(B29557)>( I )</c> Bf-109 50kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_bf109_early_campaign_support"
+msgid "<c(B29557)>( I )</c> Bf-109 50kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_bf109_late_campaign_allround"
+msgid "<c(B29557)>( I )</c> Bf-109 50kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_bf109_late_campaign_allround2"
+msgid "<c(B29557)>( I )</c> Bf-109 50kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_bf109_late_campaign_defensive"
+msgid "<c(B29557)>( I )</c> Bf-109 50kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_bf109_late_campaign_offensive"
+msgid "<c(B29557)>( I )</c> Bf-109 50kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_bf109_late_campaign_support"
+msgid "<c(B29557)>( I )</c> Bf-109 50kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_bf109_mid_campaign_allround"
+msgid "<c(B29557)>( I )</c> Bf-109 50kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_bf109_mid_campaign_defensive"
+msgid "<c(B29557)>( I )</c> Bf-109 50kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_bf109_mid_campaign_offensive"
+msgid "<c(B29557)>( I )</c> Bf-109 50kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_bf109_mid_campaign_support"
+msgid "<c(B29557)>( I )</c> Bf-109 50kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_bf110_early_campaign_allround"
+msgid "<c(B29557)>( III )</c> Bf-110 250kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_bf110_early_campaign_defensive"
+msgid "<c(B29557)>( III )</c> Bf-110 250kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_bf110_early_campaign_offensive"
+msgid "<c(B29557)>( III )</c> Bf-110 250kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_bf110_early_campaign_support"
+msgid "<c(B29557)>( III )</c> Bf-110 250kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_bf110_late_campaign_allround"
+msgid "<c(B29557)>( III )</c> Bf-110 250kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_bf110_late_campaign_allround2"
+msgid "<c(B29557)>( III )</c> Bf-110 250kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_bf110_late_campaign_defensive"
+msgid "<c(B29557)>( III )</c> Bf-110 250kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_bf110_late_campaign_offensive"
+msgid "<c(B29557)>( III )</c> Bf-110 250kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_bf110_late_campaign_support"
+msgid "<c(B29557)>( III )</c> Bf-110 250kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_bf110_mid_campaign_allround"
+msgid "<c(B29557)>( III )</c> Bf-110 250kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_bf110_mid_campaign_defensive"
+msgid "<c(B29557)>( III )</c> Bf-110 250kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_bf110_mid_campaign_offensive"
+msgid "<c(B29557)>( III )</c> Bf-110 250kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_bf110_mid_campaign_support"
+msgid "<c(B29557)>( III )</c> Bf-110 250kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_fi156_early_campaign_allround"
+msgid "<c(B29557)>( II )</c> Fi-156 Recon Plane"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_fi156_early_campaign_defensive"
+msgid "<c(B29557)>( II )</c> Fi-156 Recon Plane"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_fi156_early_campaign_irregular"
+msgid "<c(B29557)>( II )</c> Fi-156 Recon Plane"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_fi156_early_campaign_offensive"
+msgid "<c(B29557)>( II )</c> Fi-156 Recon Plane"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_fi156_late_campaign_allround"
+msgid "<c(B29557)>( II )</c> Fi-156 Recon Plane"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_fi156_late_campaign_allround2"
+msgid "<c(B29557)>( II )</c> Fi-156 Recon Plane"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_fi156_late_campaign_defensive"
+msgid "<c(B29557)>( II )</c> Fi-156 Recon Plane"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_fi156_late_campaign_irregular"
+msgid "<c(B29557)>( II )</c> Fi-156 Recon Plane"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_fi156_late_campaign_offensive"
+msgid "<c(B29557)>( II )</c> Fi-156 Recon Plane"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_fi156_mid_campaign_allround"
+msgid "<c(B29557)>( II )</c> Fi-156 Recon Plane"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_fi156_mid_campaign_defensive"
+msgid "<c(B29557)>( II )</c> Fi-156 Recon Plane"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_fi156_mid_campaign_irregular"
+msgid "<c(B29557)>( II )</c> Fi-156 Recon Plane"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_fi156_mid_campaign_offensive"
+msgid "<c(B29557)>( II )</c> Fi-156 Recon Plane"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_il2_early_campaign_allround"
+msgid "<c(B29557)>( III )</c> IL-2 250kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_il2_early_campaign_defensive"
+msgid "<c(B29557)>( III )</c> IL-2 250kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_il2_early_campaign_offensive"
+msgid "<c(B29557)>( III )</c> IL-2 250kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_il2_early_campaign_support"
+msgid "<c(B29557)>( III )</c> IL-2 250kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_il2_late_campaign_allround"
+msgid "<c(B29557)>( III )</c> IL-2 250kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_il2_late_campaign_defensive"
+msgid "<c(B29557)>( III )</c> IL-2 250kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_il2_late_campaign_lendlease"
+msgid "<c(B29557)>( III )</c> IL-2 250kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_il2_late_campaign_support"
+msgid "<c(B29557)>( III )</c> IL-2 250kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_il2_mid_campaign_allround"
+msgid "<c(B29557)>( III )</c> IL-2 250kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_il2_mid_campaign_defensive"
+msgid "<c(B29557)>( III )</c> IL-2 250kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_il2_mid_campaign_lendlease"
+msgid "<c(B29557)>( III )</c> IL-2 250kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_il2_mid_campaign_offensive"
+msgid "<c(B29557)>( III )</c> IL-2 250kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_il2_mid_campaign_support"
+msgid "<c(B29557)>( III )</c> IL-2 250kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_po2_early_campaign_allround"
+msgid "<c(B29557)>( II )</c> U-2 Recon Plane"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_po2_early_campaign_defensive"
+msgid "<c(B29557)>( II )</c> U-2 Recon Plane"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_po2_early_campaign_irregular"
+msgid "<c(B29557)>( II )</c> U-2 Recon Plane"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_po2_early_campaign_offensive"
+msgid "<c(B29557)>( II )</c> U-2 Recon Plane"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_po2_late_campaign_allround"
+msgid "<c(B29557)>( II )</c> U-2 Recon Plane"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_po2_late_campaign_defensive"
+msgid "<c(B29557)>( II )</c> U-2 Recon Plane"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_po2_late_campaign_irregular"
+msgid "<c(B29557)>( II )</c> U-2 Recon Plane"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_po2_late_campaign_lendlease"
+msgid "<c(B29557)>( II )</c> U-2 Recon Plane"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_po2_mid_campaign_allround"
+msgid "<c(B29557)>( II )</c> U-2 Recon Plane"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_po2_mid_campaign_defensive"
+msgid "<c(B29557)>( II )</c> U-2 Recon Plane"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_po2_mid_campaign_irregular"
+msgid "<c(B29557)>( II )</c> U-2 Recon Plane"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_po2_mid_campaign_lendlease"
+msgid "<c(B29557)>( II )</c> U-2 Recon Plane"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_po2_mid_campaign_offensive"
+msgid "<c(B29557)>( II )</c> U-2 Recon Plane"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_yak1_early_campaign_allround"
+msgid "<c(B29557)>( I )</c> Yak-1 50kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_yak1_early_campaign_defensive"
+msgid "<c(B29557)>( I )</c> Yak-1 50kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_yak1_early_campaign_offensive"
+msgid "<c(B29557)>( I )</c> Yak-1 50kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_yak1_early_campaign_support"
+msgid "<c(B29557)>( I )</c> Yak-1 50kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_yak1_late_campaign_allround"
+msgid "<c(B29557)>( I )</c> Yak-1 50kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_yak1_late_campaign_defensive"
+msgid "<c(B29557)>( I )</c> Yak-1 50kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_yak1_late_campaign_lendlease"
+msgid "<c(B29557)>( I )</c> Yak-1 50kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_yak1_late_campaign_support"
+msgid "<c(B29557)>( I )</c> Yak-1 50kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_yak1_mid_campaign_allround"
+msgid "<c(B29557)>( I )</c> Yak-1 50kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_yak1_mid_campaign_defensive"
+msgid "<c(B29557)>( I )</c> Yak-1 50kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_yak1_mid_campaign_lendlease"
+msgid "<c(B29557)>( I )</c> Yak-1 50kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_yak1_mid_campaign_offensive"
+msgid "<c(B29557)>( I )</c> Yak-1 50kg Bomb"
+msgstr ""
+
+msgctxt "desc/squad/doctrine_yak1_mid_campaign_support"
+msgid "<c(B29557)>( I )</c> Yak-1 50kg Bomb"
+msgstr ""
+# End GOH Campaign Mode air support names
