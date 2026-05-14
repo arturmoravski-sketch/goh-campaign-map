@@ -482,6 +482,7 @@ export default function GOHCampaignMap() {
   const [networkEnabled, setNetworkEnabled] = useState(false);
   const [networkStatus, setNetworkStatus] = useState("Сеть выключена.");
   const networkEnabledRef = useRef(false);
+  const importFileRef = useRef(null);
 
   const byId = useMemo(() => Object.fromEntries(provinces.map((p) => [p.id, p])), [provinces]);
   const selectedProvince = byId[selectedProvinceId] || provinces[0];
@@ -578,6 +579,24 @@ export default function GOHCampaignMap() {
     return `Атака из ${attackerProvince.name} на ${battleProvince.name}.`;
   }, [battleAttackers.length, battleDefenders.length, battleAttackerIsValid, battleDefenderIsValid, byId, battleAttacker, battleProvince]);
 
+  const battleBriefingText = useMemo(() => {
+    const attackerProvince = byId[battleAttacker?.province];
+    const defenderProvince = byId[battleDefender?.province];
+    return [
+      `GOH Campaign: подготовка боя, ход ${turn}`,
+      `Провинция: ${battleProvince?.name || "не выбрана"} (${battleProvince?.sector || "?"}, ${battleProvince?.type || "?"})`,
+      battleAttacker ? `Атакующий: ${ownerConfig[battleAttacker.side]?.label} / ${battleAttacker.id} ${battleAttacker.name} / сила ${battleAttacker.strength} / ${attackerProvince?.name || "?"}` : "Атакующий: не выбран",
+      battleDefender ? `Оборона: ${ownerConfig[battleDefender.side]?.label} / ${battleDefender.id} ${battleDefender.name} / сила ${battleDefender.strength} / ${defenderProvince?.name || "?"}` : "Оборона: не выбрана",
+      `Бюджет Германии: ${germanRecommendedBudget ? getModPresetForBudget(germanRecommendedBudget) : "не выбран"}`,
+      `Бюджет СССР: ${sovietRecommendedBudget ? getModPresetForBudget(sovietRecommendedBudget) : "не выбран"}`,
+      `Кризис 1941: ${crisisRules.phase}`,
+      `Итог после боя: победитель ${ownerConfig[battleForm.winner]?.label || "?"}, потери ${battleForm.losses}`,
+      battleForm.encircled ? "Особое правило: окружение" : null,
+      battleForm.blitzAdvance ? "Особое правило: блицкриг-шаг" : null,
+      battleForm.note ? `Заметка: ${battleForm.note}` : null,
+    ].filter(Boolean).join("\n");
+  }, [byId, battleAttacker, battleDefender, battleForm, battleProvince, crisisRules.phase, germanRecommendedBudget, sovietRecommendedBudget, turn]);
+
   useEffect(() => {
     networkEnabledRef.current = networkEnabled;
   }, [networkEnabled]);
@@ -609,13 +628,36 @@ export default function GOHCampaignMap() {
     return { provinces, links, armies, battleLog, battleRequests, turn, unitRows };
   }
 
+  function normalizeCampaignSnapshot(source) {
+    const state = source?.campaign || source?.state || source || {};
+    return {
+      provinces: Array.isArray(state.provinces) ? mergeCampaignProvinces(state.provinces) : campaignStartProvinces,
+      links,
+      armies: Array.isArray(state.armies) ? state.armies.map((army) => ({ ...army, front: getArmyFront(army) })) : initialArmies,
+      battleLog: Array.isArray(state.battleLog) ? state.battleLog : [],
+      battleRequests: Array.isArray(state.battleRequests) ? state.battleRequests : [],
+      turn: Number(state.turn) || 1,
+      unitRows: Array.isArray(state.unitRows)
+        ? state.unitRows.map((row) => ({ doctrine: commonDoctrine, resource: "ЛС", command: 0, ...row }))
+        : initialUnitRows,
+    };
+  }
+
+  function applyCampaignSnapshot(source, successMessage, syncNetwork = false) {
+    const next = normalizeCampaignSnapshot(source);
+    setProvinces(next.provinces);
+    setArmies(next.armies);
+    setBattleLog(next.battleLog);
+    setBattleRequests(next.battleRequests);
+    setUnitRows(next.unitRows);
+    setTurn(next.turn);
+    setSelectedProvinceId((current) => (next.provinces.some((province) => province.id === current) ? current : "minsk"));
+    if (syncNetwork) sendNetworkAction("reset", { state: next });
+    if (successMessage) setMessage(successMessage);
+  }
+
   function applyNetworkState(state) {
-    setProvinces(Array.isArray(state.provinces) ? mergeCampaignProvinces(state.provinces) : campaignStartProvinces);
-    setArmies(Array.isArray(state.armies) ? state.armies.map((army) => ({ ...army, front: getArmyFront(army) })) : []);
-    setBattleLog(Array.isArray(state.battleLog) ? state.battleLog : []);
-    setBattleRequests(Array.isArray(state.battleRequests) ? state.battleRequests : []);
-    setUnitRows(Array.isArray(state.unitRows) ? state.unitRows.map((row) => ({ doctrine: commonDoctrine, resource: "ЛС", command: 0, ...row })) : []);
-    setTurn(Number(state.turn) || 1);
+    applyCampaignSnapshot(state, "", false);
   }
 
   async function connectNetwork() {
@@ -791,15 +833,59 @@ export default function GOHCampaignMap() {
         return;
       }
       const data = JSON.parse(raw);
-      setProvinces(Array.isArray(data.provinces) ? mergeCampaignProvinces(data.provinces) : campaignStartProvinces);
-      setArmies(Array.isArray(data.armies) ? data.armies : initialArmies);
-      setBattleLog(Array.isArray(data.battleLog) ? data.battleLog : []);
-      setBattleRequests(Array.isArray(data.battleRequests) ? data.battleRequests : []);
-      setUnitRows(Array.isArray(data.unitRows) ? data.unitRows.map((row) => ({ doctrine: commonDoctrine, resource: "ЛС", command: 0, ...row })) : initialUnitRows);
-      setTurn(Number(data.turn) || 1);
-      setMessage("Кампания загружена.");
+      applyCampaignSnapshot(data, "Кампания загружена.", networkEnabledRef.current);
     } catch (error) {
       setMessage("Не удалось загрузить сохранение.");
+    }
+  }
+
+  function exportCampaign() {
+    try {
+      const exportedAt = new Date().toISOString();
+      const payload = {
+        app: "goh-campaign-map",
+        version: 1,
+        exportedAt,
+        campaign: getCampaignSnapshot(),
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `goh-campaign-turn-${turn}-${exportedAt.slice(0, 10)}.json`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setMessage("Кампания экспортирована в JSON-файл.");
+    } catch (error) {
+      setMessage("Не удалось экспортировать кампанию.");
+    }
+  }
+
+  function openImportDialog() {
+    importFileRef.current?.click();
+  }
+
+  async function importCampaignFile(event) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    try {
+      const raw = await file.text();
+      const data = JSON.parse(raw);
+      applyCampaignSnapshot(data, `Кампания импортирована из файла ${file.name}.`, networkEnabledRef.current);
+    } catch (error) {
+      setMessage("Не удалось импортировать файл кампании. Проверь JSON-файл.");
+    }
+  }
+
+  async function copyBattleBriefing() {
+    try {
+      await navigator.clipboard.writeText(battleBriefingText);
+      setMessage("Брифинг боя скопирован.");
+    } catch (error) {
+      setMessage("Не удалось скопировать брифинг боя.");
     }
   }
 
@@ -899,9 +985,18 @@ export default function GOHCampaignMap() {
             <AppButton onClick={nextTurn}>Ход {turn} →</AppButton>
             <AppButton onClick={saveCampaign} variant="outline"><Icon>💾</Icon>Сохранить</AppButton>
             <AppButton onClick={loadCampaign} variant="outline">Загрузить</AppButton>
+            <AppButton onClick={exportCampaign} variant="outline">Экспорт</AppButton>
+            <AppButton onClick={openImportDialog} variant="outline">Импорт</AppButton>
             <AppButton onClick={resetCampaign} variant="outline"><Icon>↩️</Icon>Сброс</AppButton>
           </div>
         </header>
+        <input
+          ref={importFileRef}
+          type="file"
+          accept="application/json,.json"
+          className="hidden"
+          onChange={importCampaignFile}
+        />
 
         <Panel>
           <PanelBody className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -1138,6 +1233,65 @@ export default function GOHCampaignMap() {
                   {battleRouteText}
                 </div>
                 <AppButton onClick={addBattle} className="w-full" disabled={!battleCanSubmit}><Icon>＋</Icon>{networkEnabled ? "Отправить заявку" : "Записать бой"}</AppButton>
+              </PanelBody>
+            </Panel>
+
+            <Panel>
+              <PanelBody className="space-y-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <h3 className="font-bold">Подготовка боя</h3>
+                    <p className="text-sm text-stone-600">{battleProvince?.name || "Провинция не выбрана"} · ход {turn}</p>
+                  </div>
+                  <span className={`rounded-full px-2 py-1 text-xs font-bold ${battleCanSubmit ? "bg-emerald-100 text-emerald-900" : "bg-amber-100 text-amber-900"}`}>
+                    {battleCanSubmit ? "готово" : "нужно выбрать бой"}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div className="rounded-2xl border bg-white p-3">
+                    <div className="text-xs font-bold uppercase text-stone-500">Атака</div>
+                    <div className="mt-1 font-bold">{battleAttacker ? `${battleAttacker.id} — ${battleAttacker.name}` : "не выбрана"}</div>
+                    <div className="text-xs text-stone-500">
+                      {battleAttacker ? `${ownerConfig[battleAttacker.side]?.label} · сила ${battleAttacker.strength}` : "выбери свою армию"}
+                    </div>
+                  </div>
+                  <div className="rounded-2xl border bg-white p-3">
+                    <div className="text-xs font-bold uppercase text-stone-500">Оборона</div>
+                    <div className="mt-1 font-bold">{battleDefender ? `${ownerConfig[battleDefender.side]?.label} · контакт` : "не выбрана"}</div>
+                    <div className="text-xs text-stone-500">
+                      {battleDefender ? `${battleProvince?.name || "провинция"} · точный состав скрыт` : "нужен контакт противника"}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div className="rounded-2xl bg-zinc-100 p-3">
+                    <div className="text-xs font-bold uppercase text-zinc-600">Германия</div>
+                    <div className="text-lg font-black">{germanRecommendedBudget ? getModPresetForBudget(germanRecommendedBudget) : "не выбрана"}</div>
+                  </div>
+                  <div className="rounded-2xl bg-red-50 p-3 text-red-950">
+                    <div className="text-xs font-bold uppercase text-red-700">СССР</div>
+                    <div className="text-lg font-black">{sovietRecommendedBudget ? getModPresetForBudget(sovietRecommendedBudget) : "не выбран"}</div>
+                    {sovietBaseBudget && crisisRules.ussrBudgetCap && sovietBaseBudget > crisisRules.ussrBudgetCap && (
+                      <div className="mt-1 text-xs">Кризис режет бюджет с {sovietBaseBudget} ЛС.</div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border bg-stone-50 p-3 text-xs leading-relaxed text-stone-700">
+                  <div className="font-bold text-stone-900">Перед запуском матча</div>
+                  <ul className="mt-1 space-y-1">
+                    <li>· В лобби выбрать GOH Campaign Mode и нужный бюджет ЛС.</li>
+                    <li>· Карту выбрать по договоренности: {battleProvince?.name || "выбранная провинция"} или ближайший подходящий бой.</li>
+                    <li>· Доктрину и год сверить с текущим этапом кампании и правилами кризиса 1941.</li>
+                    <li>· После боя записать победителя, потери, окружение и блицкриг-шаг.</li>
+                  </ul>
+                </div>
+
+                <AppButton onClick={copyBattleBriefing} variant="outline" className="w-full" disabled={!battleCanSubmit}>
+                  Скопировать брифинг
+                </AppButton>
               </PanelBody>
             </Panel>
 
