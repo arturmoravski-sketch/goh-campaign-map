@@ -10,6 +10,16 @@ import {
 
 const initialProvinces = [
   { id: "east_prussia", name: "Восточная Пруссия", sector: "Север", type: "база", owner: "germany", x: 7, y: 18, points: 0, bonus: "База Германии" },
+  { id: "konigsberg", name: "Кёнигсберг", sector: "Польша", type: "порт/база", owner: "germany", x: 18, y: 40, points: 1, bonus: "База Восточной Пруссии" },
+  { id: "gdansk", name: "Гданьск", sector: "Польша", type: "порт/город", owner: "germany", x: 11, y: 42, points: 1, bonus: "+300 порт" },
+  { id: "torun", name: "Торунь", sector: "Польша", type: "город/переправа", owner: "germany", x: 11, y: 50, points: 0, bonus: "Висла" },
+  { id: "poznan", name: "Познань", sector: "Польша", type: "город/узел", owner: "germany", x: 7, y: 55, points: 1, bonus: "Западный узел" },
+  { id: "warsaw", name: "Варшава", sector: "Польша", type: "крупный город", owner: "germany", x: 23, y: 51, points: 2, bonus: "Генерал-губернаторство" },
+  { id: "lodz", name: "Лодзь", sector: "Польша", type: "промышленный город", owner: "germany", x: 19, y: 58, points: 1, bonus: "+300 промышленность" },
+  { id: "radom", name: "Радом", sector: "Польша", type: "город/узел", owner: "germany", x: 24, y: 61, points: 0, bonus: "Связь Варшава-Краков" },
+  { id: "lublin", name: "Люблин", sector: "Польша", type: "город/узел", owner: "germany", x: 29, y: 61, points: 1, bonus: "Подступ к Бресту и Львову" },
+  { id: "krakow", name: "Краков", sector: "Польша", type: "город/узел", owner: "germany", x: 16, y: 70, points: 1, bonus: "Южный узел" },
+  { id: "wroclaw", name: "Бреслау", sector: "Польша", type: "город/узел", owner: "germany", x: 4, y: 62, points: 1, bonus: "Западный тыл" },
   { id: "baltics", name: "Таллин", sector: "Север", type: "порт/город", owner: "ussr", x: 41, y: 24, points: 1, bonus: "+300 порт" },
   { id: "riga", name: "Рига", sector: "Север", type: "порт/город", owner: "ussr", x: 30, y: 25, points: 1, bonus: "+300 порт" },
   { id: "daugavpils", name: "Двинск", sector: "Север", type: "переход/река", owner: "ussr", x: 43, y: 33, points: 0, bonus: "Западная Двина" },
@@ -21,8 +31,8 @@ const initialProvinces = [
   { id: "tikhvin", name: "Тихвин", sector: "Север", type: "переход/лес", owner: "ussr", x: 72, y: 22, points: 0, bonus: "Северная развилка" },
   { id: "karelia", name: "Карелия", sector: "Север", type: "лес/озёра", owner: "ussr", x: 78, y: 4, points: 1, bonus: "Трудная местность" },
 
-  { id: "brest", name: "Брест", sector: "Центр", type: "крепость", owner: "germany", x: 9, y: 42, points: 1, bonus: "+500 обороне" },
-  { id: "bialystok", name: "Белосток", sector: "Центр", type: "поле/узел", owner: "germany", x: 18, y: 32, points: 1, bonus: "Дорожный узел" },
+  { id: "brest", name: "Брест", sector: "Центр", type: "крепость", owner: "ussr", x: 9, y: 42, points: 1, bonus: "+500 обороне" },
+  { id: "bialystok", name: "Белосток", sector: "Центр", type: "поле/узел", owner: "ussr", x: 18, y: 32, points: 1, bonus: "Дорожный узел" },
   { id: "vilnius", name: "Вильнюс", sector: "Центр", type: "город/узел", owner: "ussr", x: 37, y: 38, points: 1, bonus: "Балтийский узел" },
   { id: "minsk", name: "Минск", sector: "Центр", type: "крупный город", owner: "ussr", x: 31, y: 35, points: 1, bonus: "+300 снабжение" },
   { id: "orsha", name: "Орша", sector: "Центр", type: "город/узел", owner: "ussr", x: 61, y: 43, points: 1, bonus: "Дорога на Смоленск" },
@@ -38,9 +48,10 @@ const initialProvinces = [
   { id: "gomel", name: "Гомель", sector: "Центр", type: "лес/река", owner: "ussr", x: 49, y: 55, points: 1, bonus: "Связь центр-юг" },
   { id: "bryansk", name: "Брянск", sector: "Центр", type: "лес/укрепрайон", owner: "ussr", x: 64, y: 52, points: 1, bonus: "Лесная оборона" },
   { id: "orel", name: "Орёл", sector: "Центр", type: "поле/город", owner: "ussr", x: 76, y: 56, points: 1, bonus: "Южный подступ" },
+  { id: "mtcensk", name: "Мценск", sector: "Центр", type: "город/дорога", owner: "ussr", x: 86, y: 50, points: 0, bonus: "Дорога Орёл-Тула" },
   { id: "kursk", name: "Курск", sector: "Центр", type: "город/узел", owner: "ussr", x: 82, y: 57, points: 1, bonus: "Связь центр-юг" },
 
-  { id: "lviv", name: "Львов", sector: "Юг", type: "город", owner: "germany", x: 8, y: 66, points: 1, bonus: "База Германии" },
+  { id: "lviv", name: "Львов", sector: "Юг", type: "город", owner: "ussr", x: 8, y: 66, points: 1, bonus: "Западная Украина" },
   { id: "ternopil", name: "Тернополь", sector: "Юг", type: "поле/город", owner: "ussr", x: 19, y: 69, points: 1, bonus: "Западная Украина" },
   { id: "zhytomyr", name: "Житомир", sector: "Юг", type: "лес/поле", owner: "ussr", x: 31, y: 64, points: 1, bonus: "Путь на Киев" },
   { id: "vinnytsia", name: "Винница", sector: "Юг", type: "переход/город", owner: "ussr", x: 49, y: 68, points: 0, bonus: "Правобережный узел" },
@@ -63,7 +74,17 @@ const initialProvinces = [
 ];
 
 const links = [
-  ["east_prussia", "bialystok"], ["east_prussia", "vilnius"],
+  ["east_prussia", "konigsberg"], ["east_prussia", "bialystok"], ["east_prussia", "vilnius"],
+  ["konigsberg", "gdansk"], ["konigsberg", "bialystok"], ["konigsberg", "vilnius"],
+  ["gdansk", "torun"], ["gdansk", "poznan"],
+  ["torun", "poznan"], ["torun", "warsaw"], ["torun", "lodz"],
+  ["poznan", "wroclaw"], ["poznan", "lodz"],
+  ["wroclaw", "lodz"], ["wroclaw", "krakow"],
+  ["warsaw", "bialystok"], ["warsaw", "brest"], ["warsaw", "lodz"], ["warsaw", "radom"], ["warsaw", "lublin"],
+  ["lodz", "radom"], ["lodz", "krakow"],
+  ["radom", "lublin"], ["radom", "krakow"],
+  ["lublin", "brest"], ["lublin", "lviv"], ["lublin", "krakow"],
+  ["krakow", "lviv"],
   ["baltics", "riga"], ["baltics", "pskov"], ["baltics", "leningrad"],
   ["riga", "daugavpils"], ["riga", "vilnius"],
   ["daugavpils", "pskov"], ["daugavpils", "vitebsk"], ["daugavpils", "vilnius"],
@@ -86,11 +107,12 @@ const links = [
   ["vyazma", "moscow"], ["vyazma", "kaluga"], ["vyazma", "bryansk"],
   ["moscow", "kaluga"], ["moscow", "tula"],
   ["kaluga", "tula"], ["kaluga", "bryansk"],
-  ["tula", "orel"], ["tula", "kursk"],
+  ["tula", "mtcensk"], ["tula", "kursk"],
   ["mogilev", "gomel"],
   ["gomel", "bryansk"], ["gomel", "chernihiv"],
   ["bryansk", "orel"], ["bryansk", "kursk"],
-  ["orel", "kursk"],
+  ["orel", "mtcensk"], ["orel", "kursk"],
+  ["mtcensk", "kursk"],
   ["kursk", "kharkiv"], ["kursk", "poltava"],
 
   ["lviv", "ternopil"], ["lviv", "zhytomyr"],
@@ -113,10 +135,10 @@ const links = [
 ];
 
 const initialArmies = [
-  { id: "G1", name: "Группа Север", side: "germany", front: "germany_north", province: "east_prussia", strength: 2 },
-  { id: "G2", name: "Группа Центр", side: "germany", front: "germany_center", province: "brest", strength: 3 },
-  { id: "G3", name: "Группа Юг", side: "germany", front: "germany_south", province: "lviv", strength: 2 },
-  { id: "GR", name: "Резерв", side: "germany", front: "germany_reserve", province: "bialystok", strength: 1 },
+  { id: "G1", name: "Группа Север", side: "germany", front: "germany_north", province: "konigsberg", strength: 2 },
+  { id: "G2", name: "Группа Центр", side: "germany", front: "germany_center", province: "warsaw", strength: 3 },
+  { id: "G3", name: "Группа Юг", side: "germany", front: "germany_south", province: "lublin", strength: 2 },
+  { id: "GR", name: "Резерв", side: "germany", front: "germany_reserve", province: "krakow", strength: 1 },
   { id: "S1", name: "Северный фронт", side: "ussr", front: "ussr_north", province: "pskov", strength: 2 },
   { id: "S2", name: "Западный фронт", side: "ussr", front: "ussr_west", province: "minsk", strength: 3 },
   { id: "S3", name: "Юго-Западный фронт", side: "ussr", front: "ussr_southwest", province: "kyiv", strength: 2 },
@@ -157,6 +179,16 @@ const mapImageUrl = "/maps/eastern-front-1941.jpg";
 
 const mapCoordinates = {
   east_prussia: { x: 22, y: 43 },
+  konigsberg: { x: 22, y: 39 },
+  gdansk: { x: 16, y: 40 },
+  torun: { x: 15, y: 50 },
+  poznan: { x: 11, y: 55 },
+  warsaw: { x: 24, y: 51 },
+  lodz: { x: 19, y: 58 },
+  radom: { x: 24, y: 62 },
+  lublin: { x: 30, y: 60 },
+  krakow: { x: 17, y: 71 },
+  wroclaw: { x: 10, y: 62 },
   baltics: { x: 38, y: 18 },
   riga: { x: 35, y: 30 },
   daugavpils: { x: 40, y: 40 },
@@ -184,6 +216,7 @@ const mapCoordinates = {
   gomel: { x: 57, y: 53 },
   bryansk: { x: 73, y: 50 },
   orel: { x: 81, y: 49 },
+  mtcensk: { x: 89, y: 48 },
   kursk: { x: 81, y: 55 },
   lviv: { x: 30, y: 66 },
   ternopil: { x: 34, y: 68 },
@@ -358,7 +391,7 @@ function runSelfTests() {
   const armyIds = new Set(initialArmies.map((a) => a.id));
   const errors = [];
 
-  if (initialProvinces.length !== 49) errors.push(`Ожидалось 49 провинций, получено ${initialProvinces.length}`);
+  if (initialProvinces.length !== 60) errors.push(`Ожидалось 60 провинций, получено ${initialProvinces.length}`);
   if (calcBudget(1) !== 3500) errors.push("calcBudget(1) должен быть 3500");
   if (calcBudget(4) !== 9000) errors.push("calcBudget(4) должен быть 9000");
   if (calcBudget(5) !== 11000) errors.push("calcBudget(5) должен быть 11000");
@@ -368,7 +401,14 @@ function runSelfTests() {
   if (!getNeighbors("minsk").includes("brest")) errors.push("Минск должен быть связан с Брестом");
   if (!getNeighbors("minsk").includes("orsha")) errors.push("Минск должен быть связан с Оршей");
   if (!getNeighbors("orsha").includes("smolensk")) errors.push("Орша должна быть связана со Смоленском");
+  if (!getNeighbors("warsaw").includes("brest")) errors.push("Варшава должна быть связана с Брестом");
+  if (!getNeighbors("lublin").includes("lviv")) errors.push("Люблин должен быть связан со Львовом");
+  if (!getNeighbors("mtcensk").includes("orel")) errors.push("Мценск должен быть связан с Орлом");
   if (!getNeighbors("melitopol").includes("crimea")) errors.push("Мелитополь должен быть связан с Крымом");
+  ["brest", "bialystok", "lviv"].forEach((id) => {
+    const province = initialProvinces.find((item) => item.id === id);
+    if (province?.owner !== "ussr") errors.push(`${province?.name || id} должен быть советским на старте 22 июня 1941`);
+  });
 
   initialProvinces.forEach((province) => {
     if (!mapCoordinates[province.id]) errors.push(`Для провинции нет координат карты: ${province.id}`);
