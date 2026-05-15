@@ -265,6 +265,54 @@ function calcBudget(strength) {
   return { 1: 3500, 2: 5000, 3: 7000, 4: 9000, 5: 11000 }[Number(strength)] || 3500;
 }
 
+function getGarrisonBudget(province) {
+  if (!province || province.owner === "neutral") return null;
+  const text = `${province.name} ${province.type} ${province.bonus}`.toLowerCase();
+  if (["moscow", "leningrad", "kyiv"].includes(province.id) || province.points >= 4) return 7000;
+  if (province.points >= 2 || /крепость|укреп|крупный|столица|ключ/.test(text)) return 5000;
+  if (province.points >= 1 || /город|узел|порт|переправа|река/.test(text)) return 3500;
+  return 2500;
+}
+
+function getGarrisonRules(province) {
+  const budget = getGarrisonBudget(province);
+  if (!budget) return [];
+  if (budget >= 7000) return ["столичная/ключевая оборона", "полноценная пехота, ПТО и артиллерия по договоренности"];
+  if (budget >= 5000) return ["усиленный гарнизон", "пехота, ПТО, минометы, укрепления; редкая броня по договоренности"];
+  if (budget >= 3500) return ["обычный гарнизон", "пехота, пулеметы, минометы, ПТО; максимум легкая броня"];
+  return ["слабый гарнизон", "пехота, пулеметы, легкие минометы; без танков и тяжелой артиллерии"];
+}
+
+function getGarrisonId(provinceId) {
+  return `garrison:${provinceId}`;
+}
+
+function getGarrisonProvinceId(garrisonId) {
+  return String(garrisonId || "").startsWith("garrison:") ? String(garrisonId).slice("garrison:".length) : null;
+}
+
+function makeGarrisonDefender(province) {
+  const budget = getGarrisonBudget(province);
+  if (!budget) return null;
+  return {
+    id: getGarrisonId(province.id),
+    name: `Гарнизон ${province.name}`,
+    side: province.owner,
+    province: province.id,
+    strength: null,
+    budget,
+    front: `${province.owner}_garrison`,
+    garrison: true,
+  };
+}
+
+function getBattleBudget(army, crisisRules) {
+  if (!army) return null;
+  const baseBudget = army.garrison ? army.budget : calcBudget(army.strength);
+  if (army.side === "ussr" && crisisRules.ussrBudgetCap) return Math.min(baseBudget, crisisRules.ussrBudgetCap);
+  return baseBudget;
+}
+
 function getFrontIdsForSide(side) {
   return (frontSlots[side] || []).map((front) => front.id);
 }
@@ -532,16 +580,9 @@ export default function GOHCampaignMap() {
   const calculatorRemaining = calculatorBudget - calculatorTotal;
   const crisisRules = useMemo(() => getCampaignCrisisRules(turn), [turn]);
   const battleAttacker = armies.find((army) => army.id === battleForm.attacker);
-  const battleDefender = armies.find((army) => army.id === battleForm.defender);
-  const battleArmies = [battleAttacker, battleDefender].filter(Boolean);
-  const sovietBattleArmy = battleArmies.find((army) => army.side === "ussr");
-  const germanBattleArmy = battleArmies.find((army) => army.side === "germany");
-  const sovietBaseBudget = sovietBattleArmy ? calcBudget(sovietBattleArmy.strength) : null;
-  const germanBaseBudget = germanBattleArmy ? calcBudget(germanBattleArmy.strength) : null;
-  const sovietRecommendedBudget = sovietBaseBudget && crisisRules.ussrBudgetCap
-    ? Math.min(sovietBaseBudget, crisisRules.ussrBudgetCap)
-    : sovietBaseBudget;
-  const germanRecommendedBudget = germanBaseBudget;
+  const selectedGarrisonProvinceId = getGarrisonProvinceId(battleForm.defender);
+  const selectedGarrisonDefender = selectedGarrisonProvinceId ? makeGarrisonDefender(byId[selectedGarrisonProvinceId]) : null;
+  const battleDefender = armies.find((army) => army.id === battleForm.defender) || selectedGarrisonDefender;
   const visibleBattleArmies = useMemo(
     () => armies.filter((army) => (army.side === playerSide && controlledFrontSet.has(getArmyFront(army))) || reconProvinceIds.has(army.province)),
     [armies, playerSide, controlledFrontSet, reconProvinceIds],
@@ -557,9 +598,19 @@ export default function GOHCampaignMap() {
     )),
     [visibleBattleArmies, playerSide, controlledFrontSet, battleReachIds],
   );
-  const battleDefenders = useMemo(
+  const battleArmyDefenders = useMemo(
     () => visibleBattleArmies.filter((army) => army.side !== playerSide && army.province === battleForm.province),
     [visibleBattleArmies, playerSide, battleForm.province],
+  );
+  const battleGarrisonDefender = useMemo(() => {
+    if (!battleProvince || battleProvince.owner === "neutral" || battleProvince.owner === playerSide) return null;
+    const ownerArmyExists = armies.some((army) => army.side === battleProvince.owner && army.province === battleProvince.id);
+    if (ownerArmyExists) return null;
+    return makeGarrisonDefender(battleProvince);
+  }, [armies, battleProvince, playerSide]);
+  const battleDefenders = useMemo(
+    () => (battleGarrisonDefender ? [...battleArmyDefenders, battleGarrisonDefender] : battleArmyDefenders),
+    [battleArmyDefenders, battleGarrisonDefender],
   );
   const battleAttackerIsValid = battleAttackers.some((army) => army.id === battleForm.attacker);
   const battleDefenderIsValid = battleDefenders.some((army) => army.id === battleForm.defender);
@@ -578,6 +629,12 @@ export default function GOHCampaignMap() {
     if (attackerProvince.id === battleProvince.id) return `Бой в ${battleProvince.name}: армия уже в провинции.`;
     return `Атака из ${attackerProvince.name} на ${battleProvince.name}.`;
   }, [battleAttackers.length, battleDefenders.length, battleAttackerIsValid, battleDefenderIsValid, byId, battleAttacker, battleProvince]);
+  const battleArmies = [battleAttacker, battleDefender].filter(Boolean);
+  const sovietBattleArmy = battleArmies.find((army) => army.side === "ussr");
+  const germanBattleArmy = battleArmies.find((army) => army.side === "germany");
+  const sovietRecommendedBudget = getBattleBudget(sovietBattleArmy, crisisRules);
+  const germanRecommendedBudget = getBattleBudget(germanBattleArmy, crisisRules);
+  const garrisonRules = battleDefender?.garrison ? getGarrisonRules(battleProvince) : [];
 
   const battleBriefingText = useMemo(() => {
     const attackerProvince = byId[battleAttacker?.province];
@@ -586,16 +643,17 @@ export default function GOHCampaignMap() {
       `GOH Campaign: подготовка боя, ход ${turn}`,
       `Провинция: ${battleProvince?.name || "не выбрана"} (${battleProvince?.sector || "?"}, ${battleProvince?.type || "?"})`,
       battleAttacker ? `Атакующий: ${ownerConfig[battleAttacker.side]?.label} / ${battleAttacker.id} ${battleAttacker.name} / сила ${battleAttacker.strength} / ${attackerProvince?.name || "?"}` : "Атакующий: не выбран",
-      battleDefender ? `Оборона: ${ownerConfig[battleDefender.side]?.label} / ${battleDefender.id} ${battleDefender.name} / сила ${battleDefender.strength} / ${defenderProvince?.name || "?"}` : "Оборона: не выбрана",
+      battleDefender ? `Оборона: ${ownerConfig[battleDefender.side]?.label} / ${battleDefender.garrison ? battleDefender.name : `${battleDefender.id} ${battleDefender.name}`} / ${battleDefender.garrison ? getModPresetForBudget(battleDefender.budget) : `сила ${battleDefender.strength}`} / ${defenderProvince?.name || "?"}` : "Оборона: не выбрана",
       `Бюджет Германии: ${germanRecommendedBudget ? getModPresetForBudget(germanRecommendedBudget) : "не выбран"}`,
       `Бюджет СССР: ${sovietRecommendedBudget ? getModPresetForBudget(sovietRecommendedBudget) : "не выбран"}`,
       `Кризис 1941: ${crisisRules.phase}`,
+      battleDefender?.garrison ? `Гарнизон: ${garrisonRules.join("; ")}` : null,
       `Итог после боя: победитель ${ownerConfig[battleForm.winner]?.label || "?"}, потери ${battleForm.losses}`,
       battleForm.encircled ? "Особое правило: окружение" : null,
       battleForm.blitzAdvance ? "Особое правило: блицкриг-шаг" : null,
       battleForm.note ? `Заметка: ${battleForm.note}` : null,
     ].filter(Boolean).join("\n");
-  }, [byId, battleAttacker, battleDefender, battleForm, battleProvince, crisisRules.phase, germanRecommendedBudget, sovietRecommendedBudget, turn]);
+  }, [byId, battleAttacker, battleDefender, battleForm, battleProvince, crisisRules.phase, garrisonRules, germanRecommendedBudget, sovietRecommendedBudget, turn]);
 
   useEffect(() => {
     networkEnabledRef.current = networkEnabled;
@@ -745,6 +803,7 @@ export default function GOHCampaignMap() {
 
   function formatArmyOption(army) {
     const provinceName = byId[army.province]?.name || "неизвестно";
+    if (army.garrison) return `Гарнизон · ${provinceName} (${getModPresetForBudget(army.budget)})`;
     if (army.side === playerSide) return `${army.id} · ${army.name} (${provinceName})`;
     return `Контакт · ${provinceName}`;
   }
@@ -903,7 +962,7 @@ export default function GOHCampaignMap() {
     }
 
     const attacker = armies.find((a) => a.id === battleForm.attacker);
-    const defender = armies.find((a) => a.id === battleForm.defender);
+    const defender = battleDefender;
     const province = byId[battleForm.province];
 
     if (!province || !attacker || !defender) {
@@ -914,14 +973,13 @@ export default function GOHCampaignMap() {
     const battleArmies = [attacker, defender];
     const sovietArmy = battleArmies.find((army) => army.side === "ussr");
     const germanArmy = battleArmies.find((army) => army.side === "germany");
-    const sovietBudget = sovietArmy
-      ? (crisisRules.ussrBudgetCap ? Math.min(calcBudget(sovietArmy.strength), crisisRules.ussrBudgetCap) : calcBudget(sovietArmy.strength))
-      : null;
-    const germanBudget = germanArmy ? calcBudget(germanArmy.strength) : null;
+    const sovietBudget = getBattleBudget(sovietArmy, crisisRules);
+    const germanBudget = getBattleBudget(germanArmy, crisisRules);
     const campaignNotes = [
       `Кризис: ${crisisRules.phase}`,
       sovietBudget ? `СССР: ${getModPresetForBudget(sovietBudget)}` : null,
       germanBudget ? `Германия: ${getModPresetForBudget(germanBudget)}` : null,
+      defender.garrison ? `Гарнизон: ${getGarrisonRules(province).join("; ")}` : null,
       battleForm.encircled ? "Окружение: советская группа получает +1 потерю силы при поражении." : null,
       battleForm.blitzAdvance && battleForm.winner === "germany" ? "Блицкриг: Германия может занять 1 пустую соседнюю провинцию." : null,
     ].filter(Boolean);
@@ -931,7 +989,7 @@ export default function GOHCampaignMap() {
       turn,
       province: province.name,
       attacker: battleForm.attacker,
-      defender: battleForm.defender,
+      defender: defender.garrison ? defender.name : battleForm.defender,
       winner: battleForm.winner,
       losses: battleForm.losses,
       note: battleForm.note,
@@ -942,6 +1000,9 @@ export default function GOHCampaignMap() {
 
     setBattleLog((prev) => [entry, ...prev]);
     updateProvince(province.id, { owner: battleForm.winner });
+    if (battleForm.winner === attacker.side) {
+      updateArmy(attacker.id, { province: province.id });
+    }
 
     const loserId = battleForm.winner === "germany" ? battleForm.defender : battleForm.attacker;
     const loser = armies.find((a) => a.id === loserId);
@@ -1198,7 +1259,7 @@ export default function GOHCampaignMap() {
                     {battleAttackers.map((a) => <option key={a.id} value={a.id}>{formatArmyOption(a)}</option>)}
                   </select>
                   <select className="rounded-xl border px-2 py-2 text-sm" value={battleDefenderIsValid ? battleForm.defender : ""} onChange={(e) => setBattleForm({ ...battleForm, defender: e.target.value })}>
-                    {battleDefenders.length === 0 && <option value="">Нет контакта в провинции</option>}
+                    {battleDefenders.length === 0 && <option value="">Нет контакта или гарнизона</option>}
                     {battleDefenders.map((a) => <option key={a.id} value={a.id}>{formatArmyOption(a)}</option>)}
                   </select>
                   <select className="rounded-xl border px-2 py-2 text-sm" value={battleForm.winner} onChange={(e) => setBattleForm({ ...battleForm, winner: e.target.value })}>
@@ -1258,9 +1319,9 @@ export default function GOHCampaignMap() {
                   </div>
                   <div className="rounded-2xl border bg-white p-3">
                     <div className="text-xs font-bold uppercase text-stone-500">Оборона</div>
-                    <div className="mt-1 font-bold">{battleDefender ? `${ownerConfig[battleDefender.side]?.label} · контакт` : "не выбрана"}</div>
+                    <div className="mt-1 font-bold">{battleDefender ? (battleDefender.garrison ? battleDefender.name : `${ownerConfig[battleDefender.side]?.label} · контакт`) : "не выбрана"}</div>
                     <div className="text-xs text-stone-500">
-                      {battleDefender ? `${battleProvince?.name || "провинция"} · точный состав скрыт` : "нужен контакт противника"}
+                      {battleDefender ? (battleDefender.garrison ? `${getModPresetForBudget(battleDefender.budget)} · ${garrisonRules[0]}` : `${battleProvince?.name || "провинция"} · точный состав скрыт`) : "нужен контакт противника"}
                     </div>
                   </div>
                 </div>
@@ -1278,6 +1339,14 @@ export default function GOHCampaignMap() {
                     )}
                   </div>
                 </div>
+
+                {battleDefender?.garrison && (
+                  <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-xs leading-relaxed text-amber-950">
+                    <div className="font-bold">Гарнизон провинции</div>
+                    <div className="mt-1">Если в провинции нет армии владельца, оборона играет на бюджет гарнизона. Гарнизон не отступает и не сохраняется после поражения.</div>
+                    <div className="mt-1">{garrisonRules.join("; ")}.</div>
+                  </div>
+                )}
 
                 <div className="rounded-2xl border bg-stone-50 p-3 text-xs leading-relaxed text-stone-700">
                   <div className="font-bold text-stone-900">Перед запуском матча</div>

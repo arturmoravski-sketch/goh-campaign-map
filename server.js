@@ -182,8 +182,8 @@ async function handleAction(req, res) {
 
 function createBattleRequest(battleForm, side, fronts) {
   const attacker = campaignState.armies.find((army) => army.id === battleForm.attacker);
-  const defender = campaignState.armies.find((army) => army.id === battleForm.defender);
   const province = campaignState.provinces.find((item) => item.id === battleForm.province);
+  const defender = resolveBattleDefender(battleForm.defender, province);
   if (!attacker || !defender || !province) return;
   const battleReachIds = new Set([province.id, ...getNeighbors(province.id, campaignState.links)]);
   if (!isControlledArmy(attacker, side, fronts)) return;
@@ -191,8 +191,8 @@ function createBattleRequest(battleForm, side, fronts) {
   if (!battleReachIds.has(attacker.province)) return;
   if (defender.province !== province.id) return;
 
-  const targetSide = [attacker.side, defender.side].find((armySide) => armySide !== side) || oppositeSide(side);
-  const targetArmy = [attacker, defender].find((army) => army.side === targetSide);
+  const targetSide = defender.side;
+  const targetArmy = defender.garrison ? null : defender;
   const crisisRules = getCampaignCrisisRules(campaignState.turn || 1);
 
   campaignState.battleRequests = [{
@@ -212,8 +212,10 @@ function createBattleRequest(battleForm, side, fronts) {
     attackerName: attacker.name,
     defender: defender.id,
     defenderSide: defender.side,
-    defenderFront: getArmyFront(defender),
+    defenderFront: defender.garrison ? null : getArmyFront(defender),
     defenderName: defender.name,
+    defenderGarrison: Boolean(defender.garrison),
+    defenderBudget: defender.garrison ? defender.budget : null,
     winner: battleForm.winner,
     losses: battleForm.losses,
     note: battleForm.note || "",
@@ -249,19 +251,18 @@ function rejectBattleRequest(id, side, fronts) {
 
 function addBattleOnServer(battleForm, side, confirmedBySide = null) {
   const attacker = campaignState.armies.find((army) => army.id === battleForm.attacker);
-  const defender = campaignState.armies.find((army) => army.id === battleForm.defender);
   const province = campaignState.provinces.find((item) => item.id === battleForm.province);
+  const defender = resolveBattleDefender(battleForm.defender, province);
   if (!attacker || !defender || !province) return;
 
   const crisisRules = getCampaignCrisisRules(campaignState.turn || 1);
   const battleArmies = [attacker, defender];
   const sovietArmy = battleArmies.find((army) => army.side === "ussr");
   const germanArmy = battleArmies.find((army) => army.side === "germany");
-  const sovietBudget = sovietArmy
-    ? (crisisRules.ussrBudgetCap ? Math.min(calcBudget(sovietArmy.strength), crisisRules.ussrBudgetCap) : calcBudget(sovietArmy.strength))
-    : null;
-  const germanBudget = germanArmy ? calcBudget(germanArmy.strength) : null;
+  const sovietBudget = getBattleBudget(sovietArmy, crisisRules);
+  const germanBudget = getBattleBudget(germanArmy, crisisRules);
   const campaignNotes = [
+    defender.garrison ? `Гарнизон: ${getGarrisonRules(province).join("; ")}` : null,
     `Кризис: ${crisisRules.phase}`,
     sovietBudget ? `СССР: ${getModPresetForBudget(sovietBudget)}` : null,
     germanBudget ? `Германия: ${getModPresetForBudget(germanBudget)}` : null,
@@ -274,7 +275,7 @@ function addBattleOnServer(battleForm, side, confirmedBySide = null) {
     turn: campaignState.turn || 1,
     province: province.name,
     attacker: battleForm.attacker,
-    defender: battleForm.defender,
+    defender: defender.garrison ? defender.name : battleForm.defender,
     winner: battleForm.winner,
     losses: battleForm.losses,
     note: battleForm.note || "",
@@ -288,6 +289,12 @@ function addBattleOnServer(battleForm, side, confirmedBySide = null) {
   campaignState.provinces = campaignState.provinces.map((item) => (
     item.id === province.id ? { ...item, owner: battleForm.winner } : item
   ));
+
+  if (battleForm.winner === attacker.side) {
+    campaignState.armies = campaignState.armies.map((army) => (
+      army.id === attacker.id ? { ...army, province: province.id } : army
+    ));
+  }
 
   const loserId = battleForm.winner === "germany" ? battleForm.defender : battleForm.attacker;
   campaignState.armies = campaignState.armies.map((army) => {
@@ -332,6 +339,10 @@ function filterStateForSide(state, side, fronts = normalizeFronts(side)) {
 
 function sanitizeBattleRequestForSide(request, side, fronts) {
   const labelArmy = (armySide, armyId, armyName) => {
+    if (request.defenderGarrison && armyId === request.defender) {
+      const budgetLabel = request.defenderBudget ? ` (${getModPresetForBudget(request.defenderBudget)})` : "";
+      return `Гарнизон · ${request.provinceName}${budgetLabel}`;
+    }
     const armyFront = armyId === request.attacker ? request.attackerFront : request.defenderFront;
     if (armySide === side && fronts.includes(armyFront)) return `${armyId} · ${armyName}`;
     if (armySide === side) return "Союзный фронт";
@@ -383,6 +394,64 @@ function getNeighbors(provinceId, allLinks = []) {
 
 function calcBudget(strength) {
   return { 1: 3500, 2: 5000, 3: 7000, 4: 9000, 5: 11000 }[Number(strength)] || 3500;
+}
+
+function getGarrisonBudget(province) {
+  if (!province || province.owner === "neutral") return null;
+  const text = `${province.name} ${province.type} ${province.bonus}`.toLowerCase();
+  if (["moscow", "leningrad", "kyiv"].includes(province.id) || province.points >= 4) return 7000;
+  if (province.points >= 2 || /крепость|укреп|крупный|столица|ключ/.test(text)) return 5000;
+  if (province.points >= 1 || /город|узел|порт|переправа|река/.test(text)) return 3500;
+  return 2500;
+}
+
+function getGarrisonRules(province) {
+  const budget = getGarrisonBudget(province);
+  if (!budget) return [];
+  if (budget >= 7000) return ["столичная/ключевая оборона", "полноценная пехота, ПТО и артиллерия по договоренности"];
+  if (budget >= 5000) return ["усиленный гарнизон", "пехота, ПТО, минометы, укрепления; редкая броня по договоренности"];
+  if (budget >= 3500) return ["обычный гарнизон", "пехота, пулеметы, минометы, ПТО; максимум легкая броня"];
+  return ["слабый гарнизон", "пехота, пулеметы, легкие минометы; без танков и тяжелой артиллерии"];
+}
+
+function getGarrisonId(provinceId) {
+  return `garrison:${provinceId}`;
+}
+
+function getGarrisonProvinceId(garrisonId) {
+  return String(garrisonId || "").startsWith("garrison:") ? String(garrisonId).slice("garrison:".length) : null;
+}
+
+function makeGarrisonDefender(province) {
+  const budget = getGarrisonBudget(province);
+  if (!budget) return null;
+  const ownerArmyExists = campaignState.armies.some((army) => army.side === province.owner && army.province === province.id);
+  if (ownerArmyExists) return null;
+  return {
+    id: getGarrisonId(province.id),
+    name: `Гарнизон ${province.name}`,
+    side: province.owner,
+    province: province.id,
+    strength: null,
+    budget,
+    front: null,
+    garrison: true,
+  };
+}
+
+function resolveBattleDefender(defenderId, province) {
+  const realDefender = campaignState.armies.find((army) => army.id === defenderId);
+  if (realDefender) return realDefender;
+  const garrisonProvinceId = getGarrisonProvinceId(defenderId);
+  if (province && garrisonProvinceId === province.id) return makeGarrisonDefender(province);
+  return null;
+}
+
+function getBattleBudget(army, crisisRules) {
+  if (!army) return null;
+  const baseBudget = army.garrison ? army.budget : calcBudget(army.strength);
+  if (army.side === "ussr" && crisisRules.ussrBudgetCap) return Math.min(baseBudget, crisisRules.ussrBudgetCap);
+  return baseBudget;
 }
 
 function getModPresetForBudget(budget) {
