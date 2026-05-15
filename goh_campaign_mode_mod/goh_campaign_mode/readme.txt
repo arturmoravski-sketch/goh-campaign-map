@@ -1,4 +1,6 @@
 GOH Campaign Mode
+Version: 0.1.0
+Tested game version: 1.063.0
 
 Local Battle Zones presets for the campaign helper site.
 
