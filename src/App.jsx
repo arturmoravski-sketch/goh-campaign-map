@@ -240,6 +240,24 @@ const mapCoordinates = {
   rostov: { x: 97, y: 78 },
 };
 
+const markerLabelOffsets = {
+  daugavpils: { x: -2.5, y: -2.2 },
+  vilnius: { x: -3.5, y: 1.2 },
+  vitebsk: { x: -4.8, y: -2.4 },
+  orsha: { x: -5.2, y: 1.2 },
+  smolensk: { x: 4.8, y: -0.6 },
+  mogilev: { x: -4.6, y: 3.2 },
+  velikie_luki: { x: -4.4, y: -2.2 },
+  vyazma: { x: 4.3, y: 1.6 },
+  bryansk: { x: -3.6, y: 1.4 },
+  orel: { x: 3.3, y: 1.1 },
+  mtcensk: { x: 4.2, y: -1.1 },
+  vinnytsia: { x: -3.5, y: 2.2 },
+  cherkasy: { x: 3.3, y: 1.6 },
+  kryvyi_rih: { x: -3.2, y: 1.2 },
+  zaporizhzhia: { x: 3.6, y: 0.9 },
+};
+
 function applyMapCoordinates(provinceList) {
   return provinceList.map((province) => ({
     ...province,
@@ -1132,10 +1150,30 @@ export default function GOHCampaignMap() {
                     const active = a === selectedProvinceId || b === selectedProvinceId;
                     return <line key={`${a}-${b}`} x1={pa.x} y1={pa.y} x2={pb.x} y2={pb.y} stroke={active ? "rgba(20,20,20,.8)" : "rgba(45,40,35,.42)"} strokeWidth={active ? 0.45 : 0.28} strokeDasharray={active ? "" : "1 1"} />;
                   })}
+                  {provinces.map((p) => {
+                    const offset = markerLabelOffsets[p.id];
+                    if (!offset) return null;
+                    const labelX = p.x + offset.x;
+                    const labelY = p.y + offset.y;
+                    return (
+                      <line
+                        key={`${p.id}-label-offset`}
+                        x1={p.x}
+                        y1={p.y}
+                        x2={labelX}
+                        y2={labelY}
+                        stroke="rgba(25,25,25,.62)"
+                        strokeWidth="0.24"
+                      />
+                    );
+                  })}
                 </svg>
 
                 {provinces.map((p) => {
                   const isSelected = p.id === selectedProvinceId;
+                  const offset = markerLabelOffsets[p.id] || { x: 0, y: 0 };
+                  const labelX = p.x + offset.x;
+                  const labelY = p.y + offset.y;
                   const armiesHere = armies.filter((a) => a.province === p.id);
                   const ownArmiesHere = armiesHere.filter((army) => army.side === playerSide && controlledFrontSet.has(getArmyFront(army)));
                   const alliedArmiesHere = armiesHere.filter((army) => army.side === playerSide && !controlledFrontSet.has(getArmyFront(army)));
@@ -1155,7 +1193,7 @@ export default function GOHCampaignMap() {
                         setBattleForm((bf) => ({ ...bf, province: p.id }));
                       }}
                       className={`absolute -translate-x-1/2 -translate-y-1/2 border-2 bg-opacity-90 text-left shadow-md backdrop-blur-[1px] transition hover:z-30 hover:scale-110 ${markerSizeClass} ${cfg.fill} ${cfg.border} ${isSelected ? "z-30 ring-2 ring-amber-400" : "z-20"}`}
-                      style={{ left: `${p.x}%`, top: `${p.y}%` }}
+                      style={{ left: `${labelX}%`, top: `${labelY}%` }}
                     >
                       <div className="flex items-center gap-1">
                         <span className={`${dotSizeClass} rounded-full ${cfg.dot}`} />
