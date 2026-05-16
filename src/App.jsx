@@ -632,6 +632,7 @@ export default function GOHCampaignMap() {
   const battleArmies = [battleAttacker, battleDefender].filter(Boolean);
   const sovietBattleArmy = battleArmies.find((army) => army.side === "ussr");
   const germanBattleArmy = battleArmies.find((army) => army.side === "germany");
+  const sovietBaseBudget = sovietBattleArmy ? (sovietBattleArmy.garrison ? sovietBattleArmy.budget : calcBudget(sovietBattleArmy.strength)) : null;
   const sovietRecommendedBudget = getBattleBudget(sovietBattleArmy, crisisRules);
   const germanRecommendedBudget = getBattleBudget(germanBattleArmy, crisisRules);
   const garrisonRules = battleDefender?.garrison ? getGarrisonRules(battleProvince) : [];
