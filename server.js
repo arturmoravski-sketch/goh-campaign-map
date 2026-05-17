@@ -136,6 +136,9 @@ async function handleAction(req, res) {
     case "setTurn":
       campaignState.turn = Math.max(1, Number(payload.turn) || campaignState.turn || 1);
       break;
+    case "setCampaignPhase":
+      campaignState.campaignPhaseId = String(payload.campaignPhaseId || campaignState.campaignPhaseId || "barbarossa_1941");
+      break;
     case "updateProvince":
       campaignState.provinces = campaignState.provinces.map((province) => (
         province.id === payload.id ? { ...province, ...(payload.patch || {}) } : province
@@ -379,6 +382,7 @@ function normalizeState(state = {}) {
     battleRequests: Array.isArray(state.battleRequests) ? state.battleRequests : [],
     unitRows: Array.isArray(state.unitRows) ? state.unitRows : [],
     turn: Math.max(1, Number(state.turn) || 1),
+    campaignPhaseId: typeof state.campaignPhaseId === "string" ? state.campaignPhaseId : "barbarossa_1941",
     updatedAt: state.updatedAt || new Date().toISOString(),
   };
 }

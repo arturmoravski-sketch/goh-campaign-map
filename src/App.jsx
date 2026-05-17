@@ -175,7 +175,53 @@ const frontSlots = {
 const armyFrontById = Object.fromEntries(initialArmies.map((army) => [army.id, army.front]));
 const frontLabelById = Object.fromEntries(Object.values(frontSlots).flat().map((front) => [front.id, front.label]));
 
-const mapImageUrl = "/maps/eastern-front-1941.jpg";
+const defaultCampaignPhaseId = "barbarossa_1941";
+
+const campaignPhases = [
+  {
+    id: "barbarossa_1941",
+    label: "Лето 1941",
+    title: "Барбаросса",
+    mapUrl: "/maps/eastern-front-1941.jpg",
+    badge: "кризис РККА",
+    description: "4 утра 22 июня 1941: приграничные армии, быстрый темп Германии, первые окружения.",
+    rules: [
+      "СССР ограничен кризисом 1941 и постепенно восстанавливает управление.",
+      "Германия может использовать блицкриг-шаг в первые ходы.",
+      "Исторические события фазы подсвечивают особые бои на карте.",
+    ],
+  },
+  {
+    id: "winter_1941_42",
+    label: "Зима 1941-42",
+    title: "Стабилизация фронта",
+    mapUrl: "/maps/eastern-front-winter-1941-42.jpg",
+    badge: "контрудар СССР",
+    description: "Фронт стабилизируется после первых месяцев войны: Москва, Ростов, Крым и зимние контрудары.",
+    rules: [
+      "СССР играет обычные бюджеты по силе группы, но техника зависит от года и договоренностей.",
+      "Германия теряет бесплатный темп наступления и получает более осторожное движение зимой.",
+      "Ключевые города и узлы можно играть как усиленные гарнизоны.",
+    ],
+  },
+  {
+    id: "caucasus_1942_43",
+    label: "Кавказ 1942-43",
+    title: "Кавказ и Сталинград",
+    mapUrl: "/maps/eastern-front-winter-1941-42.jpg",
+    badge: "заготовка",
+    description: "Заготовка под южный театр: Ростов, Кубань, Кавказ, Сталинград. Отдельную карту подключим, когда выберем основу.",
+    rules: [
+      "Германия получает цели по нефти и южным коммуникациям.",
+      "СССР получает оборону Сталинграда и растущие резервы.",
+      "Снабжение и расстояния становятся главным ограничителем темпа.",
+    ],
+  },
+];
+
+function getCampaignPhase(phaseId) {
+  return campaignPhases.find((phase) => phase.id === phaseId) || campaignPhases[0];
+}
 
 const mapCoordinates = {
   east_prussia: { x: 22, y: 43 },
@@ -261,6 +307,7 @@ const markerLabelOffsets = {
 const campaignEvents = [
   {
     id: "dubno_lutsk_brody",
+    phaseId: "barbarossa_1941",
     title: "Дубно-Луцк-Броды",
     subtitle: "танковое сражение",
     x: 37,
@@ -550,6 +597,7 @@ function AppButton({ children, onClick, variant = "solid", className = "", type 
 export default function GOHCampaignMap() {
   const [provinces, setProvinces] = useState(campaignStartProvinces);
   const [armies, setArmies] = useState(initialArmies);
+  const [campaignPhaseId, setCampaignPhaseId] = useState(defaultCampaignPhaseId);
   const [playerSide, setPlayerSide] = useState("germany");
   const [controlledFronts, setControlledFronts] = useState(getFrontIdsForSide("germany"));
   const [selectedProvinceId, setSelectedProvinceId] = useState("minsk");
@@ -566,6 +614,11 @@ export default function GOHCampaignMap() {
   const networkEnabledRef = useRef(false);
   const importFileRef = useRef(null);
 
+  const campaignPhase = useMemo(() => getCampaignPhase(campaignPhaseId), [campaignPhaseId]);
+  const phaseEvents = useMemo(
+    () => campaignEvents.filter((event) => !event.phaseId || event.phaseId === campaignPhaseId),
+    [campaignPhaseId],
+  );
   const byId = useMemo(() => Object.fromEntries(provinces.map((p) => [p.id, p])), [provinces]);
   const selectedProvince = byId[selectedProvinceId] || provinces[0];
   const provinceArmies = armies.filter((a) => a.province === selectedProvince?.id);
@@ -670,8 +723,8 @@ export default function GOHCampaignMap() {
   const sovietRecommendedBudget = getBattleBudget(sovietBattleArmy, crisisRules);
   const germanRecommendedBudget = getBattleBudget(germanBattleArmy, crisisRules);
   const garrisonRules = battleDefender?.garrison ? getGarrisonRules(battleProvince) : [];
-  const selectedEvent = campaignEvents.find((event) => event.id === selectedEventId) || null;
-  const battleEvent = campaignEvents.find((event) => (
+  const selectedEvent = phaseEvents.find((event) => event.id === selectedEventId) || null;
+  const battleEvent = phaseEvents.find((event) => (
     event.provinceIds.includes(battleForm.province)
     && event.turns.includes(turn)
   ));
@@ -682,6 +735,7 @@ export default function GOHCampaignMap() {
     const defenderProvince = byId[battleDefender?.province];
     return [
       `GOH Campaign: подготовка боя, ход ${turn}`,
+      `Фаза кампании: ${campaignPhase.label} (${campaignPhase.title})`,
       `Провинция: ${battleProvince?.name || "не выбрана"} (${battleProvince?.sector || "?"}, ${battleProvince?.type || "?"})`,
       battleAttacker ? `Атакующий: ${ownerConfig[battleAttacker.side]?.label} / ${battleAttacker.id} ${battleAttacker.name} / сила ${battleAttacker.strength} / ${attackerProvince?.name || "?"}` : "Атакующий: не выбран",
       battleDefender ? `Оборона: ${ownerConfig[battleDefender.side]?.label} / ${battleDefender.garrison ? battleDefender.name : `${battleDefender.id} ${battleDefender.name}`} / ${battleDefender.garrison ? getModPresetForBudget(battleDefender.budget) : `сила ${battleDefender.strength}`} / ${defenderProvince?.name || "?"}` : "Оборона: не выбрана",
@@ -695,11 +749,17 @@ export default function GOHCampaignMap() {
       battleForm.blitzAdvance ? "Особое правило: блицкриг-шаг" : null,
       battleForm.note ? `Заметка: ${battleForm.note}` : null,
     ].filter(Boolean).join("\n");
-  }, [byId, battleAttacker, battleDefender, battleEvent, battleForm, battleProvince, crisisRules.phase, garrisonRules, germanRecommendedBudget, sovietRecommendedBudget, turn]);
+  }, [byId, battleAttacker, battleDefender, battleEvent, battleForm, battleProvince, campaignPhase, crisisRules.phase, garrisonRules, germanRecommendedBudget, sovietRecommendedBudget, turn]);
 
   useEffect(() => {
     networkEnabledRef.current = networkEnabled;
   }, [networkEnabled]);
+
+  useEffect(() => {
+    if (!selectedEventId) return;
+    if (phaseEvents.some((event) => event.id === selectedEventId)) return;
+    setSelectedEventId(phaseEvents[0]?.id || "");
+  }, [phaseEvents, selectedEventId]);
 
   useEffect(() => {
     if (battleAttackers.some((army) => army.id === battleForm.attacker)) return;
@@ -725,7 +785,7 @@ export default function GOHCampaignMap() {
   }, [networkEnabled, playerSide, controlledFronts]);
 
   function getCampaignSnapshot() {
-    return { provinces, links, armies, battleLog, battleRequests, turn, unitRows };
+    return { provinces, links, armies, battleLog, battleRequests, turn, unitRows, campaignPhaseId };
   }
 
   function normalizeCampaignSnapshot(source) {
@@ -737,6 +797,7 @@ export default function GOHCampaignMap() {
       battleLog: Array.isArray(state.battleLog) ? state.battleLog : [],
       battleRequests: Array.isArray(state.battleRequests) ? state.battleRequests : [],
       turn: Number(state.turn) || 1,
+      campaignPhaseId: campaignPhases.some((phase) => phase.id === state.campaignPhaseId) ? state.campaignPhaseId : defaultCampaignPhaseId,
       unitRows: Array.isArray(state.unitRows)
         ? state.unitRows.map((row) => ({ doctrine: commonDoctrine, resource: "ЛС", command: 0, ...row }))
         : initialUnitRows,
@@ -751,6 +812,7 @@ export default function GOHCampaignMap() {
     setBattleRequests(next.battleRequests);
     setUnitRows(next.unitRows);
     setTurn(next.turn);
+    setCampaignPhaseId(next.campaignPhaseId);
     setSelectedProvinceId((current) => (next.provinces.some((province) => province.id === current) ? current : "minsk"));
     if (syncNetwork) sendNetworkAction("reset", { state: next });
     if (successMessage) setMessage(successMessage);
@@ -800,6 +862,12 @@ export default function GOHCampaignMap() {
       setNetworkStatus("Не удалось отправить действие на сервер.");
       return false;
     }
+  }
+
+  function selectCampaignPhase(phaseId) {
+    if (!campaignPhases.some((phase) => phase.id === phaseId)) return;
+    setCampaignPhaseId(phaseId);
+    sendNetworkAction("setCampaignPhase", { campaignPhaseId: phaseId });
   }
 
   function updateProvince(id, patch) {
@@ -902,12 +970,13 @@ export default function GOHCampaignMap() {
   }
 
   function resetCampaign() {
-    const resetState = { provinces: campaignStartProvinces, links, armies: initialArmies, battleLog: [], battleRequests: [], turn: 1, unitRows: initialUnitRows };
+    const resetState = { provinces: campaignStartProvinces, links, armies: initialArmies, battleLog: [], battleRequests: [], turn: 1, unitRows: initialUnitRows, campaignPhaseId: defaultCampaignPhaseId };
     setProvinces(resetState.provinces);
     setArmies(resetState.armies);
     setBattleLog(resetState.battleLog);
     setBattleRequests(resetState.battleRequests);
     setUnitRows(resetState.unitRows);
+    setCampaignPhaseId(resetState.campaignPhaseId);
     setUnitCalculator({ side: "germany", strength: 3, budget: 7000, doctrine: "Универсальная", unitId: "g-u-riflemen" });
     setTurn(resetState.turn);
     setSelectedProvinceId("minsk");
@@ -1103,9 +1172,36 @@ export default function GOHCampaignMap() {
 
         <Panel>
           <PanelBody className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h2 className="font-bold">Сторона игрока</h2>
-              <p className="text-sm text-stone-600">Туман войны скрывает точный состав противника. В соседних с вашими армиями провинциях видны только контакты.</p>
+            <div className="space-y-3 md:max-w-2xl">
+              <div>
+                <h2 className="font-bold">Фаза кампании</h2>
+                <p className="text-sm text-stone-600">{campaignPhase.description}</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {campaignPhases.map((phase) => (
+                  <button
+                    key={phase.id}
+                    type="button"
+                    onClick={() => selectCampaignPhase(phase.id)}
+                    className={`rounded-2xl border px-3 py-2 text-sm font-semibold transition ${campaignPhaseId === phase.id ? "border-stone-900 bg-stone-900 text-white" : "border-stone-300 bg-white text-stone-800 hover:bg-stone-100"}`}
+                  >
+                    {phase.label}
+                  </button>
+                ))}
+              </div>
+              <div className="rounded-2xl border bg-stone-50 p-3 text-xs leading-relaxed text-stone-700">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-bold text-stone-950">{campaignPhase.title}</span>
+                  <span className="rounded-full bg-amber-100 px-2 py-0.5 font-bold text-amber-900">{campaignPhase.badge}</span>
+                </div>
+                <ul className="mt-1 space-y-1">
+                  {campaignPhase.rules.map((rule) => <li key={rule}>· {rule}</li>)}
+                </ul>
+              </div>
+              <div>
+                <h2 className="font-bold">Сторона игрока</h2>
+                <p className="text-sm text-stone-600">Туман войны скрывает точный состав противника. В соседних с вашими армиями провинциях видны только контакты.</p>
+              </div>
             </div>
             <div className="space-y-2 md:w-[390px]">
               <div className="grid grid-cols-2 gap-2">
@@ -1162,7 +1258,7 @@ export default function GOHCampaignMap() {
           <Panel className="overflow-hidden">
             <PanelBody className="p-3 md:p-5">
               <div className="relative mx-auto aspect-[1240/1645] w-full max-w-[720px] overflow-hidden rounded-2xl border border-stone-400 bg-stone-200 shadow-inner">
-                <img src={mapImageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                <img src={campaignPhase.mapUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
                 <div className="absolute inset-0 bg-stone-50/10" />
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(0,0,0,.16)_1px,transparent_0)] bg-[length:22px_22px] opacity-15" />
                 <svg className="pointer-events-none absolute inset-0 z-10 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -1237,7 +1333,7 @@ export default function GOHCampaignMap() {
                   );
                 })}
 
-                {campaignEvents.map((event) => {
+                {phaseEvents.map((event) => {
                   const isActive = event.turns.includes(turn);
                   const isSelected = event.id === selectedEventId;
                   return (
@@ -1468,6 +1564,7 @@ export default function GOHCampaignMap() {
                 <div className="rounded-2xl border bg-stone-50 p-3 text-xs leading-relaxed text-stone-700">
                   <div className="font-bold text-stone-900">Перед запуском матча</div>
                   <ul className="mt-1 space-y-1">
+                    <li>· Фаза: {campaignPhase.label}. {campaignPhase.badge}.</li>
                     <li>· В лобби выбрать GOH Campaign Mode и нужный бюджет ЛС.</li>
                     <li>· Карту выбрать по договоренности: {battleProvince?.name || "выбранная провинция"} или ближайший подходящий бой.</li>
                     <li>· Доктрину и год сверить с текущим этапом кампании и правилами кризиса 1941.</li>
