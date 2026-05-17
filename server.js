@@ -164,6 +164,9 @@ async function handleAction(req, res) {
     case "confirmBattleRequest":
       confirmBattleRequest(payload.id, side, fronts);
       break;
+    case "completeBattleRequest":
+      completeBattleRequest(payload.id, payload.result || {}, side, fronts);
+      break;
     case "rejectBattleRequest":
       rejectBattleRequest(payload.id, side, fronts);
       break;
@@ -219,28 +222,32 @@ function createBattleRequest(battleForm, side, fronts) {
     defenderName: defender.name,
     defenderGarrison: Boolean(defender.garrison),
     defenderBudget: defender.garrison ? defender.budget : null,
-    winner: battleForm.winner,
-    losses: battleForm.losses,
     note: battleForm.note || "",
-    encircled: Boolean(battleForm.encircled),
-    blitzAdvance: Boolean(battleForm.blitzAdvance),
     crisisPhase: crisisRules.phase,
-  }, ...(campaignState.battleRequests || []).filter((request) => request.status === "pending")];
+  }, ...(campaignState.battleRequests || []).filter((request) => ["pending", "accepted"].includes(request.status))];
 }
 
 function confirmBattleRequest(id, side, fronts) {
   const request = (campaignState.battleRequests || []).find((item) => item.id === id && item.status === "pending");
   if (!request || !canHandleBattleRequest(request, side, fronts)) return;
+  campaignState.battleRequests = (campaignState.battleRequests || []).map((item) => (
+    item.id === id ? { ...item, status: "accepted", acceptedBySide: side, acceptedAt: new Date().toISOString() } : item
+  ));
+}
+
+function completeBattleRequest(id, result, side, fronts) {
+  const request = (campaignState.battleRequests || []).find((item) => item.id === id && item.status === "accepted");
+  if (!request || !canSeeBattleRequest(request, side, fronts)) return;
   addBattleOnServer({
     province: request.provinceId,
     attacker: request.attacker,
     defender: request.defender,
-    winner: request.winner,
-    losses: request.losses,
-    note: request.note,
-    encircled: request.encircled,
-    blitzAdvance: request.blitzAdvance,
-  }, request.createdBySide, side);
+    winner: result.winner,
+    losses: result.losses,
+    note: [request.note, result.note].filter(Boolean).join(" | "),
+    encircled: Boolean(result.encircled),
+    blitzAdvance: Boolean(result.blitzAdvance),
+  }, request.createdBySide, request.acceptedBySide || null);
   campaignState.battleRequests = (campaignState.battleRequests || []).filter((item) => item.id !== id);
 }
 
@@ -249,7 +256,7 @@ function rejectBattleRequest(id, side, fronts) {
   if (!request || !canHandleBattleRequest(request, side, fronts)) return;
   campaignState.battleRequests = (campaignState.battleRequests || []).map((item) => (
     item.id === id ? { ...item, status: "rejected", rejectedBySide: side, rejectedAt: new Date().toISOString() } : item
-  )).filter((item) => item.status === "pending");
+  )).filter((item) => ["pending", "accepted"].includes(item.status));
 }
 
 function addBattleOnServer(battleForm, side, confirmedBySide = null) {
@@ -257,6 +264,8 @@ function addBattleOnServer(battleForm, side, confirmedBySide = null) {
   const province = campaignState.provinces.find((item) => item.id === battleForm.province);
   const defender = resolveBattleDefender(battleForm.defender, province);
   if (!attacker || !defender || !province) return;
+  if (!["germany", "ussr"].includes(battleForm.winner)) return;
+  if (!["легкие", "лёгкие", "средние", "тяжёлые", "разгром"].includes(battleForm.losses)) return;
 
   const crisisRules = getCampaignCrisisRules(campaignState.turn || 1);
   const battleArmies = [attacker, defender];
@@ -332,7 +341,7 @@ function filterStateForSide(state, side, fronts = normalizeFronts(side)) {
         };
       }),
     battleRequests: state.battleRequests
-      .filter((request) => request.status === "pending" && canSeeBattleRequest(request, side, fronts))
+      .filter((request) => ["pending", "accepted"].includes(request.status) && canSeeBattleRequest(request, side, fronts))
       .map((request) => sanitizeBattleRequestForSide(request, side, fronts)),
     unitRows: state.unitRows.filter((row) => row.side === side),
     playerSide: side,
@@ -362,13 +371,10 @@ function sanitizeBattleRequestForSide(request, side, fronts) {
     provinceName: request.provinceName,
     attackerLabel: labelArmy(request.attackerSide, request.attacker, request.attackerName),
     defenderLabel: labelArmy(request.defenderSide, request.defender, request.defenderName),
-    winner: request.winner,
-    losses: request.losses,
     note: request.note,
-    encircled: request.encircled,
-    blitzAdvance: request.blitzAdvance,
     crisisPhase: request.crisisPhase,
-    canConfirm: canHandleBattleRequest(request, side, fronts),
+    canConfirm: request.status === "pending" && canHandleBattleRequest(request, side, fronts),
+    canComplete: request.status === "accepted" && canSeeBattleRequest(request, side, fronts),
     isOwnRequest: request.createdBySide === side && (request.createdByFronts || frontSlots[side] || []).some((front) => fronts.includes(front)),
   };
 }
@@ -379,8 +385,10 @@ function normalizeState(state = {}) {
     links: Array.isArray(state.links) ? state.links : [],
     armies: Array.isArray(state.armies) ? state.armies.map((army) => ({ ...army, front: getArmyFront(army) })) : [],
     battleLog: Array.isArray(state.battleLog) ? state.battleLog : [],
-    battleRequests: Array.isArray(state.battleRequests) ? state.battleRequests : [],
-    unitRows: Array.isArray(state.unitRows) ? state.unitRows : [],
+    battleRequests: Array.isArray(state.battleRequests) ? state.battleRequests.filter((request) => ["pending", "accepted"].includes(request.status)) : [],
+    unitRows: Array.isArray(state.unitRows)
+      ? state.unitRows.map((row) => ({ ...row, armyId: row.armyId || (row.side === "ussr" ? "S2" : "G2") }))
+      : [],
     turn: Math.max(1, Number(state.turn) || 1),
     campaignPhaseId: typeof state.campaignPhaseId === "string" ? state.campaignPhaseId : "barbarossa_1941",
     updatedAt: state.updatedAt || new Date().toISOString(),

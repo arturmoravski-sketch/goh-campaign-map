@@ -542,9 +542,14 @@ function getCampaignCrisisRules(turn) {
   };
 }
 
-function makeUnitRow(unit, id = `unit-${Date.now()}`) {
+function getDefaultArmyIdForSide(side) {
+  return side === "ussr" ? "S2" : "G2";
+}
+
+function makeUnitRow(unit, id = `unit-${Date.now()}`, armyId = null) {
   return {
     id,
+    armyId: armyId || getDefaultArmyIdForSide(unit.side),
     side: unit.side,
     doctrine: unit.doctrine,
     category: unit.category,
@@ -557,11 +562,23 @@ function makeUnitRow(unit, id = `unit-${Date.now()}`) {
 }
 
 const initialUnitRows = [
-  makeUnitRow(guideUnitCatalog.find((unit) => unit.id === "g-inf-rifleman"), "unit-g-1"),
-  makeUnitRow(guideUnitCatalog.find((unit) => unit.id === "g-tank-pz3e"), "unit-g-2"),
-  makeUnitRow(guideUnitCatalog.find((unit) => unit.id === "s-inf-rifleman"), "unit-s-1"),
-  makeUnitRow(guideUnitCatalog.find((unit) => unit.id === "s-tank-t26-1933"), "unit-s-2"),
+  makeUnitRow(guideUnitCatalog.find((unit) => unit.id === "g-inf-rifleman"), "unit-g-1", "G2"),
+  makeUnitRow(guideUnitCatalog.find((unit) => unit.id === "g-tank-pz3e"), "unit-g-2", "G2"),
+  makeUnitRow(guideUnitCatalog.find((unit) => unit.id === "s-inf-rifleman"), "unit-s-1", "S2"),
+  makeUnitRow(guideUnitCatalog.find((unit) => unit.id === "s-tank-t26-1933"), "unit-s-2", "S2"),
 ];
+
+function normalizeUnitRow(row) {
+  const side = row.side || "germany";
+  return {
+    doctrine: commonDoctrine,
+    resource: "ЛС",
+    command: 0,
+    ...row,
+    side,
+    armyId: row.armyId || getDefaultArmyIdForSide(side),
+  };
+}
 
 function getNeighbors(provinceId, allLinks = links) {
   const result = new Set();
@@ -670,8 +687,9 @@ export default function GOHCampaignMap() {
   const [battleLog, setBattleLog] = useState([]);
   const [battleRequests, setBattleRequests] = useState([]);
   const [battleForm, setBattleForm] = useState({ province: "minsk", attacker: "G2", defender: "S2", winner: "germany", losses: "средние", note: "", encircled: false, blitzAdvance: false });
+  const [battleResultForms, setBattleResultForms] = useState({});
   const [selectedEventId, setSelectedEventId] = useState("dubno_lutsk_brody");
-  const [unitCalculator, setUnitCalculator] = useState({ side: "germany", strength: 3, budget: 7000, doctrine: "Универсальная", unitId: "g-u-riflemen" });
+  const [unitCalculator, setUnitCalculator] = useState({ side: "germany", armyId: "G2", strength: 3, budget: 7000, doctrine: "Универсальная", unitId: "g-u-riflemen" });
   const [unitRows, setUnitRows] = useState(initialUnitRows);
   const [message, setMessage] = useState("");
   const [networkEnabled, setNetworkEnabled] = useState(false);
@@ -703,14 +721,25 @@ export default function GOHCampaignMap() {
   const selectedEnemyContacts = provinceArmies.filter((army) => army.side !== playerSide && reconProvinceIds.has(selectedProvince?.id));
   const connectedIds = useMemo(() => getNeighbors(selectedProvinceId), [selectedProvinceId]);
   const victoryPoints = useMemo(() => calculateVictoryPoints(provinces), [provinces]);
-  const doctrineOptions = useMemo(() => getDoctrineOptions(unitCalculator.side), [unitCalculator.side]);
+  const calculatorArmies = useMemo(
+    () => armies.filter((army) => army.side === playerSide && controlledFrontSet.has(getArmyFront(army))),
+    [armies, playerSide, controlledFrontSet],
+  );
+  const selectedCalculatorArmy = calculatorArmies.find((army) => army.id === unitCalculator.armyId) || calculatorArmies[0] || null;
+  const calculatorArmyId = selectedCalculatorArmy?.id || unitCalculator.armyId || getDefaultArmyIdForSide(playerSide);
+  const calculatorSide = selectedCalculatorArmy?.side || playerSide;
+  const calculatorStrength = Number(selectedCalculatorArmy?.strength || unitCalculator.strength || 1);
+  const doctrineOptions = useMemo(() => getDoctrineOptions(calculatorSide), [calculatorSide]);
   const catalogUnits = useMemo(
-    () => getCatalogUnits(unitCalculator.side, unitCalculator.doctrine),
-    [unitCalculator.side, unitCalculator.doctrine],
+    () => getCatalogUnits(calculatorSide, unitCalculator.doctrine),
+    [calculatorSide, unitCalculator.doctrine],
   );
   const selectedCatalogUnit = catalogUnits.find((unit) => unit.id === unitCalculator.unitId) || catalogUnits[0];
-  const calculatorRows = useMemo(() => unitRows.filter((row) => row.side === unitCalculator.side), [unitRows, unitCalculator.side]);
-  const calculatorBudget = Number(unitCalculator.budget) || calcBudget(unitCalculator.strength);
+  const calculatorRows = useMemo(
+    () => unitRows.filter((row) => row.side === calculatorSide && (row.armyId || getDefaultArmyIdForSide(row.side)) === calculatorArmyId),
+    [unitRows, calculatorSide, calculatorArmyId],
+  );
+  const calculatorBudget = Number(unitCalculator.budget) || calcBudget(calculatorStrength);
   const calculatorTotal = useMemo(
     () => calculatorRows.reduce((sum, row) => {
       if ((row.resource || "ЛС") !== "ЛС") return sum;
@@ -809,16 +838,33 @@ export default function GOHCampaignMap() {
       `Кризис 1941: ${crisisRules.phase}`,
       battleDefender?.garrison ? `Гарнизон: ${garrisonRules.join("; ")}` : null,
       battleEvent ? `Событие: ${battleEvent.title} - ${battleEvent.battleRule}` : null,
-      `Итог после боя: победитель ${ownerConfig[battleForm.winner]?.label || "?"}, потери ${battleForm.losses}`,
-      battleForm.encircled ? "Особое правило: окружение" : null,
-      battleForm.blitzAdvance ? "Особое правило: блицкриг-шаг" : null,
+      networkEnabled ? "Статус: заявка на бой; результат записывается после матча." : `Итог после боя: победитель ${ownerConfig[battleForm.winner]?.label || "?"}, потери ${battleForm.losses}`,
+      !networkEnabled && battleForm.encircled ? "Особое правило: окружение" : null,
+      !networkEnabled && battleForm.blitzAdvance ? "Особое правило: блицкриг-шаг" : null,
       battleForm.note ? `Заметка: ${battleForm.note}` : null,
     ].filter(Boolean).join("\n");
-  }, [byId, battleAttacker, battleDefender, battleEvent, battleForm, battleProvince, campaignPhase, crisisRules.phase, garrisonRules, germanRecommendedBudget, sovietRecommendedBudget, turn]);
+  }, [byId, battleAttacker, battleDefender, battleEvent, battleForm, battleProvince, campaignPhase, crisisRules.phase, garrisonRules, germanRecommendedBudget, networkEnabled, sovietRecommendedBudget, turn]);
 
   useEffect(() => {
     networkEnabledRef.current = networkEnabled;
   }, [networkEnabled]);
+
+  useEffect(() => {
+    if (!calculatorArmies.length) return;
+    if (calculatorArmies.some((army) => army.id === unitCalculator.armyId)) return;
+    const nextArmy = calculatorArmies[0];
+    const nextDoctrine = getDoctrineOptions(nextArmy.side).includes(unitCalculator.doctrine) ? unitCalculator.doctrine : commonDoctrine;
+    const nextUnits = getCatalogUnits(nextArmy.side, nextDoctrine);
+    setUnitCalculator((prev) => ({
+      ...prev,
+      side: nextArmy.side,
+      armyId: nextArmy.id,
+      strength: nextArmy.strength,
+      budget: calcBudget(nextArmy.strength),
+      doctrine: nextDoctrine,
+      unitId: nextUnits[0]?.id || "",
+    }));
+  }, [calculatorArmies, unitCalculator.armyId, unitCalculator.doctrine]);
 
   useEffect(() => {
     if (!selectedEventId) return;
@@ -864,7 +910,7 @@ export default function GOHCampaignMap() {
       turn: Number(state.turn) || 1,
       campaignPhaseId: campaignPhases.some((phase) => phase.id === state.campaignPhaseId) ? state.campaignPhaseId : defaultCampaignPhaseId,
       unitRows: Array.isArray(state.unitRows)
-        ? state.unitRows.map((row) => ({ doctrine: commonDoctrine, resource: "ЛС", command: 0, ...row }))
+        ? state.unitRows.map(normalizeUnitRow)
         : initialUnitRows,
     };
   }
@@ -949,7 +995,8 @@ export default function GOHCampaignMap() {
     setPlayerSide(side);
     const nextFronts = getFrontIdsForSide(side);
     setControlledFronts(nextFronts);
-    selectUnitSide(side);
+    const nextCalculatorArmy = armies.find((army) => army.side === side && nextFronts.includes(getArmyFront(army)));
+    if (nextCalculatorArmy) selectCalculatorArmy(nextCalculatorArmy.id);
     const nextFrontSet = new Set(nextFronts);
     const nextOwnProvinceIds = armies.filter((army) => army.side === side && nextFrontSet.has(getArmyFront(army))).map((army) => army.province);
     const nextReconProvinceIds = new Set(nextOwnProvinceIds);
@@ -990,31 +1037,41 @@ export default function GOHCampaignMap() {
   function commitUnitRows(updater) {
     setUnitRows((prev) => {
       const next = updater(prev);
-      sendNetworkAction("setUnitRows", { unitRows: next.filter((row) => row.side === unitCalculator.side) });
+      sendNetworkAction("setUnitRows", { unitRows: next.filter((row) => row.side === calculatorSide) });
       return next;
     });
   }
 
-  function selectUnitSide(side) {
-    const nextDoctrine = getDoctrineOptions(side).includes(unitCalculator.doctrine) ? unitCalculator.doctrine : commonDoctrine;
-    const nextUnits = getCatalogUnits(side, nextDoctrine);
-    setUnitCalculator((prev) => ({ ...prev, side, doctrine: nextDoctrine, unitId: nextUnits[0]?.id || "" }));
+  function selectCalculatorArmy(armyId) {
+    const army = armies.find((item) => item.id === armyId);
+    if (!army) return;
+    const nextDoctrine = getDoctrineOptions(army.side).includes(unitCalculator.doctrine) ? unitCalculator.doctrine : commonDoctrine;
+    const nextUnits = getCatalogUnits(army.side, nextDoctrine);
+    setUnitCalculator((prev) => ({
+      ...prev,
+      side: army.side,
+      armyId: army.id,
+      strength: army.strength,
+      budget: calcBudget(army.strength),
+      doctrine: nextDoctrine,
+      unitId: nextUnits[0]?.id || "",
+    }));
   }
 
   function selectDoctrine(doctrine) {
-    const nextUnits = getCatalogUnits(unitCalculator.side, doctrine);
+    const nextUnits = getCatalogUnits(calculatorSide, doctrine);
     setUnitCalculator((prev) => ({ ...prev, doctrine, unitId: nextUnits[0]?.id || "" }));
   }
 
   function addCatalogUnit() {
     if (!selectedCatalogUnit) return;
-    commitUnitRows((prev) => [...prev, makeUnitRow(selectedCatalogUnit, `unit-${selectedCatalogUnit.id}-${Date.now()}`)]);
+    commitUnitRows((prev) => [...prev, makeUnitRow(selectedCatalogUnit, `unit-${selectedCatalogUnit.id}-${Date.now()}`, calculatorArmyId)]);
   }
 
   function addUnitRow() {
     commitUnitRows((prev) => [
       ...prev,
-      { id: `unit-${Date.now()}`, side: unitCalculator.side, doctrine: unitCalculator.doctrine, category: "Пехота", name: "", cost: 0, resource: "ЛС", command: 0, count: 1 },
+      { id: `unit-${Date.now()}`, armyId: calculatorArmyId, side: calculatorSide, doctrine: unitCalculator.doctrine, category: "Пехота", name: "", cost: 0, resource: "ЛС", command: 0, count: 1 },
     ]);
   }
 
@@ -1023,7 +1080,7 @@ export default function GOHCampaignMap() {
   }
 
   function clearUnitRowsForSide() {
-    commitUnitRows((prev) => prev.filter((row) => row.side !== unitCalculator.side));
+    commitUnitRows((prev) => prev.filter((row) => (row.armyId || getDefaultArmyIdForSide(row.side)) !== calculatorArmyId));
   }
 
   function nextTurn() {
@@ -1042,7 +1099,7 @@ export default function GOHCampaignMap() {
     setBattleRequests(resetState.battleRequests);
     setUnitRows(resetState.unitRows);
     setCampaignPhaseId(resetState.campaignPhaseId);
-    setUnitCalculator({ side: "germany", strength: 3, budget: 7000, doctrine: "Универсальная", unitId: "g-u-riflemen" });
+    setUnitCalculator({ side: "germany", armyId: "G2", strength: 3, budget: 7000, doctrine: "Универсальная", unitId: "g-u-riflemen" });
     setTurn(resetState.turn);
     setSelectedProvinceId("minsk");
     setBattleForm({ province: "minsk", attacker: "G2", defender: "S2", winner: "germany", losses: "средние", note: "", encircled: false, blitzAdvance: false });
@@ -1133,7 +1190,7 @@ export default function GOHCampaignMap() {
     if (networkEnabledRef.current) {
       sendNetworkAction("submitBattleRequest", { battleForm });
       setBattleForm((prev) => ({ ...prev, note: "", encircled: false, blitzAdvance: false }));
-      setMessage("Заявка на бой отправлена второй стороне.");
+      setMessage("Заявка на бой отправлена второй стороне. Победителя и потери запишем после матча.");
       return;
     }
 
@@ -1202,12 +1259,34 @@ export default function GOHCampaignMap() {
 
   function confirmBattleRequest(id) {
     sendNetworkAction("confirmBattleRequest", { id });
-    setMessage("Заявка подтверждена. Сервер обновит карту и журнал.");
+    setMessage("Заявка подтверждена. Теперь сыграйте бой и запишите результат.");
   }
 
   function rejectBattleRequest(id) {
     sendNetworkAction("rejectBattleRequest", { id });
     setMessage("Заявка отклонена.");
+  }
+
+  function getBattleResultForm(id) {
+    return battleResultForms[id] || { winner: playerSide, losses: "средние", note: "", encircled: false, blitzAdvance: false };
+  }
+
+  function updateBattleResultForm(id, patch) {
+    setBattleResultForms((prev) => ({
+      ...prev,
+      [id]: { winner: playerSide, losses: "средние", note: "", encircled: false, blitzAdvance: false, ...(prev[id] || {}), ...patch },
+    }));
+  }
+
+  function completeBattleRequest(id) {
+    const result = getBattleResultForm(id);
+    sendNetworkAction("completeBattleRequest", { id, result });
+    setBattleResultForms((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+    setMessage("Результат боя отправлен на сервер. Карта и журнал обновятся после синхронизации.");
   }
 
   return (
@@ -1532,32 +1611,36 @@ export default function GOHCampaignMap() {
                     {battleDefenders.length === 0 && <option value="">Нет контакта или гарнизона</option>}
                     {battleDefenders.map((a) => <option key={a.id} value={a.id}>{formatArmyOption(a)}</option>)}
                   </select>
-                  <select className="rounded-xl border px-2 py-2 text-sm" value={battleForm.winner} onChange={(e) => setBattleForm({ ...battleForm, winner: e.target.value })}>
-                    <option value="germany">Победила Германия</option>
-                    <option value="ussr">Победил СССР</option>
-                  </select>
-                  <select className="rounded-xl border px-2 py-2 text-sm" value={battleForm.losses} onChange={(e) => setBattleForm({ ...battleForm, losses: e.target.value })}>
-                    <option>лёгкие</option>
-                    <option>средние</option>
-                    <option>тяжёлые</option>
-                    <option>разгром</option>
-                  </select>
-                  <label className="flex items-center gap-2 rounded-xl border bg-white px-3 py-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={battleForm.encircled}
-                      onChange={(e) => setBattleForm({ ...battleForm, encircled: e.target.checked })}
-                    />
-                    Окружение
-                  </label>
-                  <label className="flex items-center gap-2 rounded-xl border bg-white px-3 py-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={battleForm.blitzAdvance}
-                      onChange={(e) => setBattleForm({ ...battleForm, blitzAdvance: e.target.checked })}
-                    />
-                    Блицкриг-шаг
-                  </label>
+                  {!networkEnabled && (
+                    <>
+                      <select className="rounded-xl border px-2 py-2 text-sm" value={battleForm.winner} onChange={(e) => setBattleForm({ ...battleForm, winner: e.target.value })}>
+                        <option value="germany">Победила Германия</option>
+                        <option value="ussr">Победил СССР</option>
+                      </select>
+                      <select className="rounded-xl border px-2 py-2 text-sm" value={battleForm.losses} onChange={(e) => setBattleForm({ ...battleForm, losses: e.target.value })}>
+                        <option>лёгкие</option>
+                        <option>средние</option>
+                        <option>тяжёлые</option>
+                        <option>разгром</option>
+                      </select>
+                      <label className="flex items-center gap-2 rounded-xl border bg-white px-3 py-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={battleForm.encircled}
+                          onChange={(e) => setBattleForm({ ...battleForm, encircled: e.target.checked })}
+                        />
+                        Окружение
+                      </label>
+                      <label className="flex items-center gap-2 rounded-xl border bg-white px-3 py-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={battleForm.blitzAdvance}
+                          onChange={(e) => setBattleForm({ ...battleForm, blitzAdvance: e.target.checked })}
+                        />
+                        Блицкриг-шаг
+                      </label>
+                    </>
+                  )}
                   <input className="col-span-2 rounded-xl border px-3 py-2 text-sm" placeholder="Примечание" value={battleForm.note} onChange={(e) => setBattleForm({ ...battleForm, note: e.target.value })} />
                 </div>
                 <div className={`rounded-2xl border px-3 py-2 text-xs ${battleCanSubmit ? "border-emerald-200 bg-emerald-50 text-emerald-950" : "border-amber-200 bg-amber-50 text-amber-950"}`}>
@@ -1651,15 +1734,17 @@ export default function GOHCampaignMap() {
                     <span className="rounded-full bg-stone-100 px-2 py-1 text-xs font-bold text-stone-700">{battleRequests.length}</span>
                   </div>
                   {battleRequests.length === 0 && <p className="text-sm text-stone-500">Ожидающих заявок нет.</p>}
-                  {battleRequests.map((request) => (
-                    <div key={request.id} className={`space-y-2 rounded-2xl border p-3 ${request.canConfirm ? "border-amber-300 bg-amber-50" : "bg-white"}`}>
+                  {battleRequests.map((request) => {
+                    const result = getBattleResultForm(request.id);
+                    return (
+                    <div key={request.id} className={`space-y-2 rounded-2xl border p-3 ${request.canConfirm ? "border-amber-300 bg-amber-50" : request.status === "accepted" ? "border-emerald-300 bg-emerald-50" : "bg-white"}`}>
                       <div className="flex items-start justify-between gap-2">
                         <div>
                           <div className="font-bold">{request.provinceName}</div>
                           <div className="text-xs text-stone-500">Ход {request.turn} · {request.crisisPhase}</div>
                         </div>
                         <span className="rounded-full bg-white px-2 py-1 text-xs font-bold text-stone-700">
-                          {request.canConfirm ? "Нужно подтвердить" : "Ожидает соперника"}
+                          {request.canConfirm ? "Нужно подтвердить" : request.status === "accepted" ? "Бой согласован" : "Ожидает соперника"}
                         </span>
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-sm">
@@ -1672,14 +1757,9 @@ export default function GOHCampaignMap() {
                           <div>{request.defenderLabel}</div>
                         </div>
                       </div>
-                      <div className="text-sm">
-                        Победитель: <b>{ownerConfig[request.winner]?.label}</b> · Потери: <b>{request.losses}</b>
-                      </div>
-                      {(request.encircled || request.blitzAdvance || request.note) && (
+                      {request.note && (
                         <div className="text-xs text-stone-600">
-                          {request.note && <div>{request.note}</div>}
-                          {request.encircled && <div>Окружение отмечено.</div>}
-                          {request.blitzAdvance && <div>Блицкриг-шаг отмечен.</div>}
+                          {request.note}
                         </div>
                       )}
                       {request.canConfirm && (
@@ -1688,8 +1768,36 @@ export default function GOHCampaignMap() {
                           <AppButton onClick={() => rejectBattleRequest(request.id)} variant="outline">Отклонить</AppButton>
                         </div>
                       )}
+                      {request.status === "accepted" && (
+                        <div className="space-y-2 rounded-2xl border bg-white p-2">
+                          <div className="text-xs font-bold uppercase text-stone-500">Результат после матча</div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <select className="rounded-xl border px-2 py-2 text-sm" value={result.winner} onChange={(e) => updateBattleResultForm(request.id, { winner: e.target.value })}>
+                              <option value="germany">Победила Германия</option>
+                              <option value="ussr">Победил СССР</option>
+                            </select>
+                            <select className="rounded-xl border px-2 py-2 text-sm" value={result.losses} onChange={(e) => updateBattleResultForm(request.id, { losses: e.target.value })}>
+                              <option>лёгкие</option>
+                              <option>средние</option>
+                              <option>тяжёлые</option>
+                              <option>разгром</option>
+                            </select>
+                            <label className="flex items-center gap-2 rounded-xl border px-3 py-2 text-sm">
+                              <input type="checkbox" checked={result.encircled} onChange={(e) => updateBattleResultForm(request.id, { encircled: e.target.checked })} />
+                              Окружение
+                            </label>
+                            <label className="flex items-center gap-2 rounded-xl border px-3 py-2 text-sm">
+                              <input type="checkbox" checked={result.blitzAdvance} onChange={(e) => updateBattleResultForm(request.id, { blitzAdvance: e.target.checked })} />
+                              Блицкриг-шаг
+                            </label>
+                            <input className="col-span-2 rounded-xl border px-3 py-2 text-sm" placeholder="Итог боя / заметка" value={result.note} onChange={(e) => updateBattleResultForm(request.id, { note: e.target.value })} />
+                          </div>
+                          <AppButton onClick={() => completeBattleRequest(request.id)} className="w-full">Записать результат</AppButton>
+                        </div>
+                      )}
                     </div>
-                  ))}
+                    );
+                  })}
                 </PanelBody>
               </Panel>
             )}
@@ -1748,9 +1856,17 @@ export default function GOHCampaignMap() {
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="rounded-xl border bg-stone-50 px-2 py-2 text-sm font-semibold">
-                    {ownerConfig[playerSide].label}
-                  </div>
+                  <select
+                    className="rounded-xl border px-2 py-2 text-sm font-semibold"
+                    value={calculatorArmyId}
+                    onChange={(e) => selectCalculatorArmy(e.target.value)}
+                  >
+                    {calculatorArmies.map((army) => (
+                      <option key={army.id} value={army.id}>
+                        {army.id} · {army.name}
+                      </option>
+                    ))}
+                  </select>
                   <select
                     className="rounded-xl border px-2 py-2 text-sm"
                     value={calculatorBudget}
@@ -1777,6 +1893,11 @@ export default function GOHCampaignMap() {
                     ))}
                   </select>
                 </div>
+                {selectedCalculatorArmy && (
+                  <div className="rounded-2xl border border-stone-200 bg-stone-50 p-3 text-xs text-stone-600">
+                    Состав сохраняется только для этой армии: <b>{selectedCalculatorArmy.id} · {selectedCalculatorArmy.name}</b>. У других фронтов будет свой отдельный набор.
+                  </div>
+                )}
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div className="rounded-2xl bg-stone-100 p-3">
                     <div className="text-xs text-stone-500">Бюджет ЛС</div>
@@ -1874,7 +1995,7 @@ export default function GOHCampaignMap() {
                 <div className="grid grid-cols-2 gap-2">
                   <AppButton onClick={addCatalogUnit}>Добавить из списка</AppButton>
                   <AppButton onClick={addUnitRow} variant="outline">Своя строка</AppButton>
-                  <AppButton onClick={clearUnitRowsForSide} variant="outline" className="col-span-2">Очистить сторону</AppButton>
+                  <AppButton onClick={clearUnitRowsForSide} variant="outline" className="col-span-2">Очистить состав армии</AppButton>
                 </div>
                 <div className="text-right">
                   <a className="text-xs font-semibold text-stone-500 underline-offset-4 hover:underline" href={guideSource.url} target="_blank" rel="noreferrer">
