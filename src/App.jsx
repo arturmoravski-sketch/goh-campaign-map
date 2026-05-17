@@ -258,6 +258,21 @@ const markerLabelOffsets = {
   zaporizhzhia: { x: 3.6, y: 0.9 },
 };
 
+const campaignEvents = [
+  {
+    id: "dubno_lutsk_brody",
+    title: "Дубно-Луцк-Броды",
+    subtitle: "танковое сражение",
+    x: 37,
+    y: 63,
+    turns: [1, 2],
+    provinceIds: ["lviv", "ternopil", "zhytomyr", "vinnytsia"],
+    description: "В районе Дубно, Луцка и Бродов замечена крупная концентрация советских танковых соединений.",
+    battleRule: "Сценарный бой: обе стороны набирают преимущественно бронетехнику, противотанковые орудия, разведку и транспорт. Пехота допускается только как сопровождение.",
+    attackerHint: "СССР может объявить контрудар мехкорпусов; Германия может принять бой или попытаться удержать темп наступления.",
+  },
+];
+
 function applyMapCoordinates(provinceList) {
   return provinceList.map((province) => ({
     ...province,
@@ -542,6 +557,7 @@ export default function GOHCampaignMap() {
   const [battleLog, setBattleLog] = useState([]);
   const [battleRequests, setBattleRequests] = useState([]);
   const [battleForm, setBattleForm] = useState({ province: "minsk", attacker: "G2", defender: "S2", winner: "germany", losses: "средние", note: "", encircled: false, blitzAdvance: false });
+  const [selectedEventId, setSelectedEventId] = useState("dubno_lutsk_brody");
   const [unitCalculator, setUnitCalculator] = useState({ side: "germany", strength: 3, budget: 7000, doctrine: "Универсальная", unitId: "g-u-riflemen" });
   const [unitRows, setUnitRows] = useState(initialUnitRows);
   const [message, setMessage] = useState("");
@@ -654,6 +670,12 @@ export default function GOHCampaignMap() {
   const sovietRecommendedBudget = getBattleBudget(sovietBattleArmy, crisisRules);
   const germanRecommendedBudget = getBattleBudget(germanBattleArmy, crisisRules);
   const garrisonRules = battleDefender?.garrison ? getGarrisonRules(battleProvince) : [];
+  const selectedEvent = campaignEvents.find((event) => event.id === selectedEventId) || null;
+  const battleEvent = campaignEvents.find((event) => (
+    event.provinceIds.includes(battleForm.province)
+    && event.turns.includes(turn)
+  ));
+  const visibleEvent = selectedEvent || battleEvent;
 
   const battleBriefingText = useMemo(() => {
     const attackerProvince = byId[battleAttacker?.province];
@@ -667,12 +689,13 @@ export default function GOHCampaignMap() {
       `Бюджет СССР: ${sovietRecommendedBudget ? getModPresetForBudget(sovietRecommendedBudget) : "не выбран"}`,
       `Кризис 1941: ${crisisRules.phase}`,
       battleDefender?.garrison ? `Гарнизон: ${garrisonRules.join("; ")}` : null,
+      battleEvent ? `Событие: ${battleEvent.title} - ${battleEvent.battleRule}` : null,
       `Итог после боя: победитель ${ownerConfig[battleForm.winner]?.label || "?"}, потери ${battleForm.losses}`,
       battleForm.encircled ? "Особое правило: окружение" : null,
       battleForm.blitzAdvance ? "Особое правило: блицкриг-шаг" : null,
       battleForm.note ? `Заметка: ${battleForm.note}` : null,
     ].filter(Boolean).join("\n");
-  }, [byId, battleAttacker, battleDefender, battleForm, battleProvince, crisisRules.phase, garrisonRules, germanRecommendedBudget, sovietRecommendedBudget, turn]);
+  }, [byId, battleAttacker, battleDefender, battleEvent, battleForm, battleProvince, crisisRules.phase, garrisonRules, germanRecommendedBudget, sovietRecommendedBudget, turn]);
 
   useEffect(() => {
     networkEnabledRef.current = networkEnabled;
@@ -1214,11 +1237,33 @@ export default function GOHCampaignMap() {
                   );
                 })}
 
+                {campaignEvents.map((event) => {
+                  const isActive = event.turns.includes(turn);
+                  const isSelected = event.id === selectedEventId;
+                  return (
+                    <button
+                      key={event.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedEventId(event.id);
+                        setSelectedProvinceId(event.provinceIds[0]);
+                        setBattleForm((bf) => ({ ...bf, province: event.provinceIds[0], note: event.title }));
+                      }}
+                      className={`absolute z-40 -translate-x-1/2 -translate-y-1/2 rounded-xl border-2 px-2 py-1 text-left text-[10px] font-bold shadow-lg backdrop-blur-sm transition hover:scale-105 ${isActive ? "border-amber-500 bg-amber-100/95 text-amber-950" : "border-stone-400 bg-white/90 text-stone-700"} ${isSelected ? "ring-2 ring-amber-400" : ""}`}
+                      style={{ left: `${event.x}%`, top: `${event.y}%` }}
+                    >
+                      <div className="leading-tight">{event.title}</div>
+                      <div className="text-[9px] font-semibold opacity-80">{event.subtitle}</div>
+                    </button>
+                  );
+                })}
+
                 <div className="absolute bottom-3 left-3 z-40 flex max-w-[calc(100%-1.5rem)] flex-wrap gap-2 rounded-xl border bg-white/90 p-2 text-xs shadow-sm backdrop-blur">
                   <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-full bg-red-700" /> СССР</span>
                   <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-full bg-zinc-800" /> Германия</span>
                   <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-full bg-amber-300" /> контакт</span>
                   <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-full bg-sky-200" /> союзник</span>
+                  <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-amber-300" /> событие</span>
                   <span className="flex items-center gap-1"><Icon>⚑</Icon> число = сила группы</span>
                 </div>
               </div>
@@ -1247,6 +1292,31 @@ export default function GOHCampaignMap() {
                 </div>
               </PanelBody>
             </Panel>
+
+            {visibleEvent && (
+              <Panel>
+                <PanelBody className="space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <h3 className="font-bold">Оперативное событие</h3>
+                      <p className="text-sm text-stone-600">{visibleEvent.title} · {visibleEvent.subtitle}</p>
+                    </div>
+                    <span className={`rounded-full border px-2 py-1 text-xs font-bold ${visibleEvent.turns.includes(turn) ? "border-amber-300 bg-amber-100 text-amber-900" : "border-stone-300 bg-stone-100 text-stone-600"}`}>
+                      {visibleEvent.turns.includes(turn) ? "активно" : "историческая зона"}
+                    </span>
+                  </div>
+                  <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">
+                    <div>{visibleEvent.description}</div>
+                    <div className="mt-2 font-bold">Правило боя</div>
+                    <div className="mt-1 text-xs leading-relaxed">{visibleEvent.battleRule}</div>
+                    <div className="mt-2 text-xs leading-relaxed">{visibleEvent.attackerHint}</div>
+                  </div>
+                  <div className="text-xs text-stone-500">
+                    Зона события: {visibleEvent.provinceIds.map((id) => byId[id]?.name).filter(Boolean).join(", ")}.
+                  </div>
+                </PanelBody>
+              </Panel>
+            )}
 
             <Panel>
               <PanelBody className="space-y-3">
@@ -1384,6 +1454,14 @@ export default function GOHCampaignMap() {
                     <div className="font-bold">Гарнизон провинции</div>
                     <div className="mt-1">Если в провинции нет армии владельца, оборона играет на бюджет гарнизона. Гарнизон не отступает и не сохраняется после поражения.</div>
                     <div className="mt-1">{garrisonRules.join("; ")}.</div>
+                  </div>
+                )}
+
+                {battleEvent && (
+                  <div className="rounded-2xl border border-amber-300 bg-amber-50 p-3 text-xs leading-relaxed text-amber-950">
+                    <div className="font-bold">{battleEvent.title}</div>
+                    <div className="mt-1">{battleEvent.description}</div>
+                    <div className="mt-1 font-semibold">{battleEvent.battleRule}</div>
                   </div>
                 )}
 
