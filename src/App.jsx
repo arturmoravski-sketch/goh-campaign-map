@@ -304,6 +304,90 @@ const markerLabelOffsets = {
   zaporizhzhia: { x: 3.6, y: 0.9 },
 };
 
+const schemeCoordinates = {
+  gdansk: { x: 8, y: 18 },
+  poznan: { x: 8, y: 45 },
+  wroclaw: { x: 8, y: 71 },
+  torun: { x: 18, y: 32 },
+  lodz: { x: 18, y: 50 },
+  krakow: { x: 18, y: 83 },
+  konigsberg: { x: 28, y: 16 },
+  east_prussia: { x: 28, y: 30 },
+  warsaw: { x: 28, y: 45 },
+  radom: { x: 28, y: 58 },
+  lublin: { x: 28, y: 72 },
+  baltics: { x: 38, y: 12 },
+  riga: { x: 38, y: 24 },
+  bialystok: { x: 38, y: 41 },
+  brest: { x: 38, y: 55 },
+  lviv: { x: 38, y: 82 },
+  daugavpils: { x: 48, y: 19 },
+  pskov: { x: 48, y: 30 },
+  vilnius: { x: 48, y: 42 },
+  minsk: { x: 48, y: 54 },
+  ternopil: { x: 48, y: 78 },
+  luga: { x: 58, y: 15 },
+  velikie_luki: { x: 58, y: 28 },
+  vitebsk: { x: 58, y: 40 },
+  orsha: { x: 58, y: 51 },
+  mogilev: { x: 58, y: 62 },
+  zhytomyr: { x: 58, y: 75 },
+  vinnytsia: { x: 58, y: 88 },
+  karelia: { x: 68, y: 7 },
+  leningrad: { x: 68, y: 16 },
+  novgorod: { x: 68, y: 25 },
+  rzhev: { x: 68, y: 36 },
+  smolensk: { x: 68, y: 48 },
+  gomel: { x: 68, y: 60 },
+  chernihiv: { x: 68, y: 70 },
+  kyiv: { x: 68, y: 80 },
+  uman: { x: 68, y: 91 },
+  tikhvin: { x: 78, y: 17 },
+  kalinin: { x: 78, y: 29 },
+  vyazma: { x: 78, y: 41 },
+  bryansk: { x: 78, y: 53 },
+  poltava: { x: 78, y: 65 },
+  cherkasy: { x: 78, y: 77 },
+  mykolaiv: { x: 78, y: 89 },
+  moscow: { x: 88, y: 31 },
+  kaluga: { x: 88, y: 42 },
+  orel: { x: 88, y: 52 },
+  kursk: { x: 88, y: 62 },
+  kharkiv: { x: 88, y: 72 },
+  kryvyi_rih: { x: 88, y: 82 },
+  odessa: { x: 88, y: 92 },
+  tula: { x: 96, y: 40 },
+  mtcensk: { x: 96, y: 50 },
+  dnipro: { x: 96, y: 66 },
+  stalino: { x: 96, y: 74 },
+  zaporizhzhia: { x: 96, y: 82 },
+  melitopol: { x: 96, y: 90 },
+  rostov: { x: 96, y: 58 },
+  crimea: { x: 78, y: 93 },
+  sevastopol: { x: 88, y: 93 },
+};
+
+const mapViewOptions = [
+  { id: "historical", label: "Историческая карта" },
+  { id: "scheme", label: "Оперативная схема" },
+];
+
+function getMapPoint(province, view = "historical") {
+  if (!province) return null;
+  if (view === "scheme") return schemeCoordinates[province.id] || null;
+  return { x: province.x, y: province.y };
+}
+
+function getEventPoint(event, provinceById, view = "historical") {
+  if (view !== "scheme") return { x: event.x, y: event.y };
+  const points = event.provinceIds.map((id) => getMapPoint(provinceById[id], view)).filter(Boolean);
+  if (!points.length) return { x: event.x, y: event.y };
+  return {
+    x: points.reduce((sum, point) => sum + point.x, 0) / points.length,
+    y: points.reduce((sum, point) => sum + point.y, 0) / points.length,
+  };
+}
+
 const campaignEvents = [
   {
     id: "dubno_lutsk_brody",
@@ -680,6 +764,7 @@ export default function GOHCampaignMap() {
   const [provinces, setProvinces] = useState(campaignStartProvinces);
   const [armies, setArmies] = useState(initialArmies);
   const [campaignPhaseId, setCampaignPhaseId] = useState(defaultCampaignPhaseId);
+  const [mapView, setMapView] = useState("historical");
   const [playerSide, setPlayerSide] = useState("germany");
   const [controlledFronts, setControlledFronts] = useState(getFrontIdsForSide("germany"));
   const [selectedProvinceId, setSelectedProvinceId] = useState("minsk");
@@ -823,6 +908,7 @@ export default function GOHCampaignMap() {
     && event.turns.includes(turn)
   ));
   const visibleEvent = selectedEvent || battleEvent;
+  const isSchemeMap = mapView === "scheme";
 
   const battleBriefingText = useMemo(() => {
     const attackerProvince = byId[battleAttacker?.province];
@@ -1401,19 +1487,49 @@ export default function GOHCampaignMap() {
         <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,820px)_390px] xl:items-start">
           <Panel className="overflow-hidden">
             <PanelBody className="p-3 md:p-5">
-              <div className="relative mx-auto aspect-[1240/1645] w-full max-w-[720px] overflow-hidden rounded-2xl border border-stone-400 bg-stone-200 shadow-inner">
-                <img src={campaignPhase.mapUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
-                <div className="absolute inset-0 bg-stone-50/10" />
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(0,0,0,.16)_1px,transparent_0)] bg-[length:22px_22px] opacity-15" />
+              <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <h2 className="font-bold">{isSchemeMap ? "Оперативная схема" : "Историческая карта"}</h2>
+                  <p className="text-xs text-stone-600">
+                    {isSchemeMap ? "Чистый вид без наложений: те же провинции, связи, армии и события." : "Историческая подложка с географическими метками."}
+                  </p>
+                </div>
+                <div className="flex rounded-2xl border border-stone-300 bg-white p-1">
+                  {mapViewOptions.map((option) => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => setMapView(option.id)}
+                      className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${mapView === option.id ? "bg-stone-900 text-white" : "text-stone-700 hover:bg-stone-100"}`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className={`relative mx-auto w-full overflow-hidden rounded-2xl border border-stone-400 shadow-inner ${isSchemeMap ? "aspect-[16/10] max-w-[980px] bg-stone-50" : "aspect-[1240/1645] max-w-[720px] bg-stone-200"}`}>
+                {!isSchemeMap && <img src={campaignPhase.mapUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />}
+                {isSchemeMap && (
+                  <>
+                    <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(120,113,108,.16)_1px,transparent_1px),linear-gradient(0deg,rgba(120,113,108,.16)_1px,transparent_1px)] bg-[length:6.25%_10%]" />
+                    <div className="absolute inset-x-0 top-[33%] h-px bg-stone-300" />
+                    <div className="absolute inset-x-0 top-[66%] h-px bg-stone-300" />
+                    <div className="absolute left-3 top-3 rounded-xl border bg-white/90 px-3 py-2 text-xs font-semibold text-stone-600 shadow-sm">Север</div>
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 rounded-xl border bg-white/90 px-3 py-2 text-xs font-semibold text-stone-600 shadow-sm">Центр</div>
+                    <div className="absolute bottom-3 left-3 rounded-xl border bg-white/90 px-3 py-2 text-xs font-semibold text-stone-600 shadow-sm">Юг</div>
+                  </>
+                )}
+                {!isSchemeMap && <div className="absolute inset-0 bg-stone-50/10" />}
+                {!isSchemeMap && <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(0,0,0,.16)_1px,transparent_0)] bg-[length:22px_22px] opacity-15" />}
                 <svg className="pointer-events-none absolute inset-0 z-10 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
                   {links.map(([a, b]) => {
-                    const pa = byId[a];
-                    const pb = byId[b];
+                    const pa = getMapPoint(byId[a], mapView);
+                    const pb = getMapPoint(byId[b], mapView);
                     if (!pa || !pb) return null;
                     const active = a === selectedProvinceId || b === selectedProvinceId;
                     return <line key={`${a}-${b}`} x1={pa.x} y1={pa.y} x2={pb.x} y2={pb.y} stroke={active ? "rgba(20,20,20,.8)" : "rgba(45,40,35,.42)"} strokeWidth={active ? 0.45 : 0.28} strokeDasharray={active ? "" : "1 1"} />;
                   })}
-                  {provinces.map((p) => {
+                  {!isSchemeMap && provinces.map((p) => {
                     const offset = markerLabelOffsets[p.id];
                     if (!offset) return null;
                     const labelX = p.x + offset.x;
@@ -1434,9 +1550,11 @@ export default function GOHCampaignMap() {
 
                 {provinces.map((p) => {
                   const isSelected = p.id === selectedProvinceId;
-                  const offset = markerLabelOffsets[p.id] || { x: 0, y: 0 };
-                  const labelX = p.x + offset.x;
-                  const labelY = p.y + offset.y;
+                  const point = getMapPoint(p, mapView);
+                  if (!point) return null;
+                  const offset = isSchemeMap ? { x: 0, y: 0 } : (markerLabelOffsets[p.id] || { x: 0, y: 0 });
+                  const labelX = point.x + offset.x;
+                  const labelY = point.y + offset.y;
                   const armiesHere = armies.filter((a) => a.province === p.id);
                   const ownArmiesHere = armiesHere.filter((army) => army.side === playerSide && controlledFrontSet.has(getArmyFront(army)));
                   const alliedArmiesHere = armiesHere.filter((army) => army.side === playerSide && !controlledFrontSet.has(getArmyFront(army)));
@@ -1444,10 +1562,11 @@ export default function GOHCampaignMap() {
                   const showEnemyContact = enemyContactCount > 0 && reconProvinceIds.has(p.id);
                   const showAlliedContact = alliedArmiesHere.length > 0;
                   const isCompact = !isSelected && ownArmiesHere.length === 0 && !showEnemyContact && !showAlliedContact && p.points === 0 && p.type.includes("переход");
+                  const compactMarker = !isSchemeMap && isCompact;
                   const cfg = ownerConfig[p.owner] || ownerConfig.neutral;
-                  const markerSizeClass = isCompact ? "min-w-[46px] max-w-[84px] rounded-md px-1 py-0.5" : "min-w-[72px] max-w-[118px] rounded-lg px-1.5 py-1";
-                  const dotSizeClass = isCompact ? "h-2 w-2" : "h-2.5 w-2.5";
-                  const labelSizeClass = isCompact ? "text-[9px]" : "text-[10px]";
+                  const markerSizeClass = isSchemeMap ? "min-w-[76px] max-w-[104px] rounded-lg px-1.5 py-1" : (compactMarker ? "min-w-[46px] max-w-[84px] rounded-md px-1 py-0.5" : "min-w-[72px] max-w-[118px] rounded-lg px-1.5 py-1");
+                  const dotSizeClass = compactMarker ? "h-2 w-2" : "h-2.5 w-2.5";
+                  const labelSizeClass = compactMarker || isSchemeMap ? "text-[9px]" : "text-[10px]";
                   return (
                     <button
                       key={p.id}
@@ -1480,6 +1599,7 @@ export default function GOHCampaignMap() {
                 {phaseEvents.map((event) => {
                   const isActive = event.turns.includes(turn);
                   const isSelected = event.id === selectedEventId;
+                  const eventPoint = getEventPoint(event, byId, mapView);
                   return (
                     <button
                       key={event.id}
@@ -1490,7 +1610,7 @@ export default function GOHCampaignMap() {
                         setBattleForm((bf) => ({ ...bf, province: event.provinceIds[0], note: event.title }));
                       }}
                       className={`absolute z-40 -translate-x-1/2 -translate-y-1/2 rounded-xl border-2 px-2 py-1 text-left text-[10px] font-bold shadow-lg backdrop-blur-sm transition hover:scale-105 ${isActive ? "border-amber-500 bg-amber-100/95 text-amber-950" : "border-stone-400 bg-white/90 text-stone-700"} ${isSelected ? "ring-2 ring-amber-400" : ""}`}
-                      style={{ left: `${event.x}%`, top: `${event.y}%` }}
+                      style={{ left: `${eventPoint.x}%`, top: `${eventPoint.y}%` }}
                     >
                       <div className="leading-tight">{event.title}</div>
                       <div className="text-[9px] font-semibold opacity-80">{event.subtitle}</div>
